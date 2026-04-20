@@ -42,8 +42,7 @@ const orders = [
 
 const seedOrders = async () => {
   try {
-    await mongoose.connect(process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/webbanquanao');
-    await Order.insertMany(orders);
+await mongoose.connect(process.env.mongodb+srv://tuanhocit2k6_db_user:<db_password>@cluster0.nvdakz0.mongodb.net/?appName=Cluster0);
     console.log('✅ 3 đơn hàng mẫu đã được thêm để kiểm tra doanh thu!');
     process.exit();
   } catch (error) {
