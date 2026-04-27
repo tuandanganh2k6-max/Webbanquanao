@@ -17,6 +17,7 @@ const Management = () => {
   const [userInfo, setUserInfo] = useState(null);
   const [filterDate, setFilterDate] = useState('');
   const [msgText, setMsgText] = useState('');
+  const [stockDrafts, setStockDrafts] = useState({});
 
   const [adForm, setAdForm] = useState({ brandName: '', duration: '1 Tháng', fee: 0, image: '', url: '' });
   const [productForm, setProductForm] = useState({ name: '', price: 0, description: '', image: '', category: '', brand: '', countInStock: 0 });
@@ -53,7 +54,11 @@ const Management = () => {
 
       if (prodRes?.ok) {
         const prodData = await prodRes.json();
+        const nextStockDrafts = Array.isArray(prodData)
+          ? Object.fromEntries(prodData.map((product) => [product._id, String(product.countInStock ?? 0)]))
+          : {};
         setData(prev => ({ ...prev, products: Array.isArray(prodData) ? prodData : [] }));
+        setStockDrafts(nextStockDrafts);
       }
       if (revRes?.ok) {
         const revData = await revRes.json();
@@ -113,7 +118,7 @@ const Management = () => {
   const deleteAd = async (id) => {
     setConfirmDeleteAd(null);
     try {
-      const res = await fetch(`/api/ads/${id}`, {
+      const res = await fetch(`${API_BASE_URL}/api/ads/${id}`, {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${userInfo.token}` }
       });
@@ -147,7 +152,7 @@ const Management = () => {
   const deleteProduct = async (id) => {
     setConfirmDelete(null); // close confirm bar
     try {
-      const res = await fetch(`/api/products/${id}`, {
+      const res = await fetch(`${API_BASE_URL}/api/products/${id}`, {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${userInfo.token}` }
       });
@@ -165,21 +170,60 @@ const Management = () => {
   };
 
   const updateStock = async (id, newStock) => {
+    if (!Number.isInteger(newStock) || newStock < 0) {
+      alert('Số lượng tồn kho phải là số nguyên không âm');
+      setStockDrafts((prev) => {
+        const currentProduct = data.products.find((product) => product._id === id);
+        return {
+          ...prev,
+          [id]: String(currentProduct?.countInStock ?? 0),
+        };
+      });
+      return;
+    }
+
     try {
-      const res = await fetch(`/api/products/${id}`, {
+      const res = await fetch(`${API_BASE_URL}/api/products/${id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${userInfo.token}` },
         body: JSON.stringify({ countInStock: newStock })
       });
       if (!res.ok) throw new Error('Lỗi cập nhật');
       setData(prev => ({ ...prev, products: prev.products.map(p => p._id === id ? { ...p, countInStock: newStock } : p) }));
+      setStockDrafts((prev) => ({ ...prev, [id]: String(newStock) }));
     } catch (err) { alert(err.message); }
+  };
+
+  const handleStockDraftChange = (id, value) => {
+    if (/^\d*$/.test(value)) {
+      setStockDrafts((prev) => ({ ...prev, [id]: value }));
+    }
+  };
+
+  const commitStockDraft = (id) => {
+    const draftValue = stockDrafts[id];
+    const currentProduct = data.products.find((product) => product._id === id);
+
+    if (!currentProduct) return;
+
+    if (draftValue === undefined || draftValue === '') {
+      setStockDrafts((prev) => ({ ...prev, [id]: String(currentProduct.countInStock ?? 0) }));
+      return;
+    }
+
+    const nextStock = Number(draftValue);
+
+    if (nextStock === currentProduct.countInStock) {
+      return;
+    }
+
+    updateStock(id, nextStock);
   };
 
   const deleteUser = async (id) => {
     setConfirmDeleteUser(null);
     try {
-      const res = await fetch(`/api/users/${id}`, {
+      const res = await fetch(`${API_BASE_URL}/api/users/${id}`, {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${userInfo.token}` }
       });
@@ -452,8 +496,16 @@ const Management = () => {
                            <input 
                              type="number" 
                              disabled={!isAdmin}
-                             value={p.countInStock} 
-                             onChange={(e) => updateStock(p._id, parseInt(e.target.value))}
+                             min="0"
+                             value={stockDrafts[p._id] ?? String(p.countInStock ?? 0)}
+                             onChange={(e) => handleStockDraftChange(p._id, e.target.value)}
+                             onBlur={() => commitStockDraft(p._id)}
+                             onKeyDown={(e) => {
+                               if (e.key === 'Enter') {
+                                 e.preventDefault();
+                                 commitStockDraft(p._id);
+                               }
+                             }}
                              className="w-16 px-2 py-2 bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-700 text-center"
                            />
                            <div className={`w-2 h-2 rounded-full ${p.countInStock > 0 ? 'bg-green-500' : 'bg-red-500 animate-pulse'}`}></div>
