@@ -42,7 +42,7 @@ const ProductDetails = () => {
   }, [id]);
 
   const handleAddToCart = () => {
-    addToCart(product, qty, selectedColor, selectedSize);
+    addToCart(product, qty, selectedSize, selectedColor);
     setAdded(true);
     setTimeout(() => setAdded(false), 2000);
   };
