@@ -22,6 +22,52 @@ const cartReducer = (state, action) => {
         ...state,
         cartItems: state.cartItems.filter((x) => x.cartId !== action.payload),
       };
+    case 'UPDATE_CART_QTY':
+      return {
+        ...state,
+        cartItems: state.cartItems.map((item) =>
+          item.cartId === action.payload.cartId
+            ? { ...item, qty: action.payload.qty }
+            : item
+        ),
+      };
+    case 'UPDATE_CART_SIZE': {
+      const { cartId, size } = action.payload;
+      const currentItem = state.cartItems.find((item) => item.cartId === cartId);
+
+      if (!currentItem) {
+        return state;
+      }
+
+      const nextCartId = `${currentItem._id}-${size}-${currentItem.color}`;
+      const mergedItem = state.cartItems.find(
+        (item) => item.cartId === nextCartId && item.cartId !== cartId
+      );
+
+      if (mergedItem) {
+        const mergedQty = currentItem.countInStock > 0
+          ? Math.min(currentItem.countInStock, mergedItem.qty + currentItem.qty)
+          : mergedItem.qty + currentItem.qty;
+
+        return {
+          ...state,
+          cartItems: state.cartItems
+            .filter((item) => item.cartId !== cartId)
+            .map((item) =>
+              item.cartId === nextCartId ? { ...item, qty: mergedQty } : item
+            ),
+        };
+      }
+
+      return {
+        ...state,
+        cartItems: state.cartItems.map((item) =>
+          item.cartId === cartId
+            ? { ...item, size, cartId: nextCartId }
+            : item
+        ),
+      };
+    }
     case 'CLEAR_CART':
       return { ...state, cartItems: [] };
     default:
@@ -42,13 +88,27 @@ export const CartProvider = ({ children }) => {
   const removeFromCart = (cartId) => {
     dispatch({ type: 'REMOVE_FROM_CART', payload: cartId });
   };
+
+  const updateCartQty = (cartId, qty) => {
+    dispatch({
+      type: 'UPDATE_CART_QTY',
+      payload: { cartId, qty: Math.max(1, qty) },
+    });
+  };
+
+  const updateCartSize = (cartId, size) => {
+    dispatch({
+      type: 'UPDATE_CART_SIZE',
+      payload: { cartId, size },
+    });
+  };
   
   const clearCart = () => {
     dispatch({ type: 'CLEAR_CART' });
   };
 
   return (
-    <CartContext.Provider value={{ cartItems: state.cartItems, addToCart, removeFromCart, clearCart }}>
+    <CartContext.Provider value={{ cartItems: state.cartItems, addToCart, removeFromCart, updateCartQty, updateCartSize, clearCart }}>
       {children}
     </CartContext.Provider>
   );

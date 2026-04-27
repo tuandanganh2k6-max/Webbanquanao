@@ -1,0 +1,351 @@
+<mxfile host="app.diagrams.net" modified="2026-04-27T16:00:00.000Z" agent="Codex" version="24.7.17">
+  <diagram id="usecase-checkout" name="Use Case - Checkout">
+    <mxGraphModel dx="1600" dy="900" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1600" pageHeight="900" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="2" value="He thong Webbanquanao - Module thanh toan" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#1f2937;strokeWidth=2;fontStyle=1;fontSize=16;align=center;" vertex="1" parent="1">
+          <mxGeometry x="170" y="50" width="1050" height="620" as="geometry" />
+        </mxCell>
+        <mxCell id="3" value="Khach hang" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;fontSize=14;" vertex="1" parent="1">
+          <mxGeometry x="40" y="250" width="70" height="140" as="geometry" />
+        </mxCell>
+        <mxCell id="4" value="Truy cap trang checkout" style="ellipse;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=13;" vertex="1" parent="1">
+          <mxGeometry x="250" y="100" width="220" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="5" value="Xem thong tin don hang" style="ellipse;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=13;" vertex="1" parent="1">
+          <mxGeometry x="560" y="100" width="220" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="6" value="Nhap thong tin giao hang" style="ellipse;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=13;" vertex="1" parent="1">
+          <mxGeometry x="250" y="220" width="220" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="7" value="Chon phuong thuc thanh toan" style="ellipse;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=13;" vertex="1" parent="1">
+          <mxGeometry x="560" y="220" width="240" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="8" value="Dat hang / thanh toan don hang" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=13;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="400" y="340" width="320" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="9" value="Nhap thong tin the" style="ellipse;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=13;" vertex="1" parent="1">
+          <mxGeometry x="860" y="220" width="220" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="10" value="Kiem tra dinh dang va han the" style="ellipse;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=13;" vertex="1" parent="1">
+          <mxGeometry x="850" y="340" width="250" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="11" value="Luu don hang vao lich su mua hang" style="ellipse;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=13;" vertex="1" parent="1">
+          <mxGeometry x="360" y="480" width="360" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="12" value="Xem lich su mua hang" style="ellipse;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=13;" vertex="1" parent="1">
+          <mxGeometry x="770" y="500" width="220" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="13" value="Thong bao gio hang trong" style="ellipse;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontSize=13;" vertex="1" parent="1">
+          <mxGeometry x="230" y="570" width="250" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="14" value="Thong bao thieu thong tin giao hang" style="ellipse;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontSize=13;" vertex="1" parent="1">
+          <mxGeometry x="520" y="580" width="310" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="15" value="Thong bao loi the / the het han" style="ellipse;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontSize=13;" vertex="1" parent="1">
+          <mxGeometry x="860" y="500" width="250" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="16" value="&lt;b&gt;Code hien tai&lt;/b&gt;&lt;br&gt;Nhanh CARD chi validate o frontend.&lt;br&gt;Backend addOrderItems() tao Order va set isPaid=true." style="shape=note;whiteSpace=wrap;html=1;size=14;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="1240" y="100" width="240" height="130" as="geometry" />
+        </mxCell>
+        <mxCell id="17" value="&lt;b&gt;Pham vi tai lieu vs code&lt;/b&gt;&lt;br&gt;User Story luu dia chi cho lan sau chua thay co model/API luu address.&lt;br&gt;Vi vay khong dua thanh sequence thuc thi." style="shape=note;whiteSpace=wrap;html=1;size=14;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="1240" y="280" width="240" height="140" as="geometry" />
+        </mxCell>
+        <mxCell id="18" value="Nguon: Checkout.jsx, orderController.js, Orders.jsx, user stories checkout/card" style="shape=note;whiteSpace=wrap;html=1;size=14;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="1240" y="460" width="240" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="30" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=none;strokeColor=#1f2937;" edge="1" parent="1" source="3" target="4">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="31" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=none;strokeColor=#1f2937;" edge="1" parent="1" source="3" target="6">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="32" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=none;strokeColor=#1f2937;" edge="1" parent="1" source="3" target="7">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="33" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=none;strokeColor=#1f2937;" edge="1" parent="1" source="3" target="8">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="34" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=none;strokeColor=#1f2937;" edge="1" parent="1" source="3" target="12">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="35" value="&lt;&lt;include&gt;&gt;" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;dashed=1;endArrow=block;endFill=0;strokeColor=#666666;fontSize=11;" edge="1" parent="1" source="4" target="5">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="36" value="&lt;&lt;include&gt;&gt;" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;dashed=1;endArrow=block;endFill=0;strokeColor=#666666;fontSize=11;" edge="1" parent="1" source="8" target="6">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="37" value="&lt;&lt;include&gt;&gt;" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;dashed=1;endArrow=block;endFill=0;strokeColor=#666666;fontSize=11;" edge="1" parent="1" source="8" target="7">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="38" value="&lt;&lt;include&gt;&gt;" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;dashed=1;endArrow=block;endFill=0;strokeColor=#666666;fontSize=11;" edge="1" parent="1" source="8" target="11">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="39" value="&lt;&lt;extend&gt;&gt;" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;dashed=1;endArrow=block;endFill=0;strokeColor=#666666;fontSize=11;" edge="1" parent="1" source="9" target="7">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="40" value="&lt;&lt;include&gt;&gt;" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;dashed=1;endArrow=block;endFill=0;strokeColor=#666666;fontSize=11;" edge="1" parent="1" source="9" target="10">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="41" value="&lt;&lt;extend&gt;&gt;" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;dashed=1;endArrow=block;endFill=0;strokeColor=#666666;fontSize=11;" edge="1" parent="1" source="13" target="4">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="42" value="&lt;&lt;extend&gt;&gt;" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;dashed=1;endArrow=block;endFill=0;strokeColor=#666666;fontSize=11;" edge="1" parent="1" source="14" target="8">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="43" value="&lt;&lt;extend&gt;&gt;" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;dashed=1;endArrow=block;endFill=0;strokeColor=#666666;fontSize=11;" edge="1" parent="1" source="15" target="9">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="sequence-checkout" name="Sequence - Checkout">
+    <mxGraphModel dx="1600" dy="1200" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1600" pageHeight="1200" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="2" value="Khach hang" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="20" y="20" width="120" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="3" value="Checkout.jsx" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="180" y="20" width="120" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="4" value="CartContext" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="340" y="20" width="120" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="5" value="localStorage" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="500" y="20" width="120" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="6" value="Orders API" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="660" y="20" width="120" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="7" value="AuthMiddleware" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="820" y="20" width="120" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="8" value="orderController" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="980" y="20" width="130" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="9" value="MongoDB / Order" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="1150" y="20" width="120" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="10" value="Orders.jsx" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="1310" y="20" width="120" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="11" value="" style="shape=line;strokeColor=#999999;dashed=1;direction=south;" vertex="1" parent="1">
+          <mxGeometry x="79" y="60" width="1" height="980" as="geometry" />
+        </mxCell>
+        <mxCell id="12" value="" style="shape=line;strokeColor=#999999;dashed=1;direction=south;" vertex="1" parent="1">
+          <mxGeometry x="239" y="60" width="1" height="980" as="geometry" />
+        </mxCell>
+        <mxCell id="13" value="" style="shape=line;strokeColor=#999999;dashed=1;direction=south;" vertex="1" parent="1">
+          <mxGeometry x="399" y="60" width="1" height="980" as="geometry" />
+        </mxCell>
+        <mxCell id="14" value="" style="shape=line;strokeColor=#999999;dashed=1;direction=south;" vertex="1" parent="1">
+          <mxGeometry x="559" y="60" width="1" height="980" as="geometry" />
+        </mxCell>
+        <mxCell id="15" value="" style="shape=line;strokeColor=#999999;dashed=1;direction=south;" vertex="1" parent="1">
+          <mxGeometry x="719" y="60" width="1" height="980" as="geometry" />
+        </mxCell>
+        <mxCell id="16" value="" style="shape=line;strokeColor=#999999;dashed=1;direction=south;" vertex="1" parent="1">
+          <mxGeometry x="879" y="60" width="1" height="980" as="geometry" />
+        </mxCell>
+        <mxCell id="17" value="" style="shape=line;strokeColor=#999999;dashed=1;direction=south;" vertex="1" parent="1">
+          <mxGeometry x="1044" y="60" width="1" height="980" as="geometry" />
+        </mxCell>
+        <mxCell id="18" value="" style="shape=line;strokeColor=#999999;dashed=1;direction=south;" vertex="1" parent="1">
+          <mxGeometry x="1209" y="60" width="1" height="980" as="geometry" />
+        </mxCell>
+        <mxCell id="19" value="" style="shape=line;strokeColor=#999999;dashed=1;direction=south;" vertex="1" parent="1">
+          <mxGeometry x="1369" y="60" width="1" height="980" as="geometry" />
+        </mxCell>
+        <mxCell id="20" value="1. Mo trang /checkout" style="edgeStyle=none;rounded=0;html=1;endArrow=block;strokeColor=#1f2937;labelBackgroundColor=#ffffff;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="140" y="120" as="sourcePoint" />
+            <mxPoint x="180" y="120" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="21" value="2. lay userInfo" style="edgeStyle=none;rounded=0;html=1;endArrow=block;strokeColor=#1f2937;labelBackgroundColor=#ffffff;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="300" y="150" as="sourcePoint" />
+            <mxPoint x="500" y="150" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="22" value="3. token / null" style="edgeStyle=none;rounded=0;html=1;endArrow=open;dashed=1;strokeColor=#666666;labelBackgroundColor=#ffffff;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="500" y="180" as="sourcePoint" />
+            <mxPoint x="300" y="180" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="23" value="4. lay cartItems()" style="edgeStyle=none;rounded=0;html=1;endArrow=block;strokeColor=#1f2937;labelBackgroundColor=#ffffff;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="300" y="210" as="sourcePoint" />
+            <mxPoint x="340" y="210" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="24" value="5. danh sach san pham" style="edgeStyle=none;rounded=0;html=1;endArrow=open;dashed=1;strokeColor=#666666;labelBackgroundColor=#ffffff;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="340" y="240" as="sourcePoint" />
+            <mxPoint x="300" y="240" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="25" value="6. Hien thi don hang, tong tien, phuong thuc thanh toan" style="edgeStyle=none;rounded=0;html=1;endArrow=block;strokeColor=#1f2937;labelBackgroundColor=#ffffff;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="180" y="270" as="sourcePoint" />
+            <mxPoint x="140" y="270" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="26" value="7. Nhap dia chi, chon COD / CARD" style="edgeStyle=none;rounded=0;html=1;endArrow=block;strokeColor=#1f2937;labelBackgroundColor=#ffffff;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="140" y="310" as="sourcePoint" />
+            <mxPoint x="180" y="310" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="27" value="CARD: formatCardNumber(), formatExpiry(), isCardExpired()" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="190" y="340" width="260" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="28" value="8. Nhan Xac nhan dat hang" style="edgeStyle=none;rounded=0;html=1;endArrow=block;strokeColor=#1f2937;labelBackgroundColor=#ffffff;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="140" y="420" as="sourcePoint" />
+            <mxPoint x="180" y="420" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="29" value="9. POST /api/orders + Bearer token + order data" style="edgeStyle=none;rounded=0;html=1;endArrow=block;strokeColor=#1f2937;labelBackgroundColor=#ffffff;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="300" y="450" as="sourcePoint" />
+            <mxPoint x="660" y="450" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="30" value="10. protect()" style="edgeStyle=none;rounded=0;html=1;endArrow=block;strokeColor=#1f2937;labelBackgroundColor=#ffffff;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="780" y="480" as="sourcePoint" />
+            <mxPoint x="820" y="480" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="31" value="11. req.user / 401" style="edgeStyle=none;rounded=0;html=1;endArrow=open;dashed=1;strokeColor=#666666;labelBackgroundColor=#ffffff;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="820" y="510" as="sourcePoint" />
+            <mxPoint x="780" y="510" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="32" value="12. addOrderItems(req, res)" style="edgeStyle=none;rounded=0;html=1;endArrow=block;strokeColor=#1f2937;labelBackgroundColor=#ffffff;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="780" y="540" as="sourcePoint" />
+            <mxPoint x="980" y="540" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="33" value="13. save(new Order{user, orderItems, shippingAddress, paymentMethod, itemsPrice, totalPrice, isPaid=true})" style="edgeStyle=none;rounded=0;html=1;endArrow=block;strokeColor=#1f2937;labelBackgroundColor=#ffffff;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="1110" y="570" as="sourcePoint" />
+            <mxPoint x="1150" y="570" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="34" value="14. createdOrder" style="edgeStyle=none;rounded=0;html=1;endArrow=open;dashed=1;strokeColor=#666666;labelBackgroundColor=#ffffff;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="1150" y="600" as="sourcePoint" />
+            <mxPoint x="1110" y="600" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="35" value="15. 201 Created + order" style="edgeStyle=none;rounded=0;html=1;endArrow=open;dashed=1;strokeColor=#666666;labelBackgroundColor=#ffffff;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="980" y="630" as="sourcePoint" />
+            <mxPoint x="780" y="630" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="36" value="16. response OK" style="edgeStyle=none;rounded=0;html=1;endArrow=open;dashed=1;strokeColor=#666666;labelBackgroundColor=#ffffff;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="660" y="660" as="sourcePoint" />
+            <mxPoint x="300" y="660" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="37" value="17. clearCart()" style="edgeStyle=none;rounded=0;html=1;endArrow=block;strokeColor=#1f2937;labelBackgroundColor=#ffffff;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="300" y="690" as="sourcePoint" />
+            <mxPoint x="340" y="690" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="38" value="18. Thong bao dat hang thanh cong" style="edgeStyle=none;rounded=0;html=1;endArrow=block;strokeColor=#1f2937;labelBackgroundColor=#ffffff;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="180" y="720" as="sourcePoint" />
+            <mxPoint x="140" y="720" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="39" value="19. navigate('/orders') sau 3 giay" style="edgeStyle=none;rounded=0;html=1;endArrow=block;strokeColor=#1f2937;labelBackgroundColor=#ffffff;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="300" y="760" as="sourcePoint" />
+            <mxPoint x="1310" y="760" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="40" value="20. GET /api/orders/myorders + Bearer token" style="edgeStyle=none;rounded=0;html=1;endArrow=block;strokeColor=#1f2937;labelBackgroundColor=#ffffff;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="1310" y="800" as="sourcePoint" />
+            <mxPoint x="780" y="800" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="41" value="21. protect()" style="edgeStyle=none;rounded=0;html=1;endArrow=block;strokeColor=#1f2937;labelBackgroundColor=#ffffff;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="780" y="830" as="sourcePoint" />
+            <mxPoint x="820" y="830" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="42" value="22. req.user / 401" style="edgeStyle=none;rounded=0;html=1;endArrow=open;dashed=1;strokeColor=#666666;labelBackgroundColor=#ffffff;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="820" y="860" as="sourcePoint" />
+            <mxPoint x="780" y="860" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="43" value="23. getMyOrders(req, res)" style="edgeStyle=none;rounded=0;html=1;endArrow=block;strokeColor=#1f2937;labelBackgroundColor=#ffffff;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="780" y="890" as="sourcePoint" />
+            <mxPoint x="980" y="890" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="44" value="24. find({ user: req.user._id }).sort(createdAt:-1)" style="edgeStyle=none;rounded=0;html=1;endArrow=block;strokeColor=#1f2937;labelBackgroundColor=#ffffff;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="1110" y="920" as="sourcePoint" />
+            <mxPoint x="1150" y="920" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="45" value="25. orders[]" style="edgeStyle=none;rounded=0;html=1;endArrow=open;dashed=1;strokeColor=#666666;labelBackgroundColor=#ffffff;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="1150" y="950" as="sourcePoint" />
+            <mxPoint x="1110" y="950" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="46" value="26. 200 orders[]" style="edgeStyle=none;rounded=0;html=1;endArrow=open;dashed=1;strokeColor=#666666;labelBackgroundColor=#ffffff;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="980" y="980" as="sourcePoint" />
+            <mxPoint x="780" y="980" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="47" value="27. orders[]" style="edgeStyle=none;rounded=0;html=1;endArrow=open;dashed=1;strokeColor=#666666;labelBackgroundColor=#ffffff;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="660" y="1010" as="sourcePoint" />
+            <mxPoint x="1310" y="1010" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="53" value="28. Hien thi lich su mua hang" style="edgeStyle=none;rounded=0;html=1;endArrow=block;strokeColor=#1f2937;labelBackgroundColor=#ffffff;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="1310" y="1040" as="sourcePoint" />
+            <mxPoint x="140" y="1040" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="48" value="&lt;b&gt;Alt 1&lt;/b&gt;&lt;br&gt;Khong co userInfo:&lt;br&gt;Checkout hien yeu cau dang nhap&lt;br&gt;(Checkout.jsx 69-88)" style="shape=note;whiteSpace=wrap;html=1;size=14;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="20" y="70" width="220" height="105" as="geometry" />
+        </mxCell>
+        <mxCell id="49" value="&lt;b&gt;Alt 2&lt;/b&gt;&lt;br&gt;Neu cartItems.length === 0&lt;br&gt;thi thong bao gio hang trong&lt;br&gt;va khong cho submit&lt;br&gt;(Checkout.jsx 153-160)" style="shape=note;whiteSpace=wrap;html=1;size=14;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="20" y="200" width="220" height="120" as="geometry" />
+        </mxCell>
+        <mxCell id="50" value="&lt;b&gt;Alt 3 - CARD&lt;/b&gt;&lt;br&gt;holder/card/expiry/cvv sai&lt;br&gt;hoac the het han =&gt; setError()&lt;br&gt;va khong goi POST /api/orders&lt;br&gt;(Checkout.jsx 95-110)" style="shape=note;whiteSpace=wrap;html=1;size=14;fillColor=#f8cecc;strokeColor=#b85450;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="20" y="340" width="240" height="125" as="geometry" />
+        </mxCell>
+        <mxCell id="51" value="&lt;b&gt;Backend hien tai&lt;/b&gt;&lt;br&gt;Khong goi cong thanh toan that.&lt;br&gt;addOrderItems() tao Order&lt;br&gt;va set isPaid=true, paidAt=Date.now().&lt;br&gt;(orderController.js 19-31)" style="shape=note;whiteSpace=wrap;html=1;size=14;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="1180" y="500" width="260" height="130" as="geometry" />
+        </mxCell>
+        <mxCell id="52" value="&lt;b&gt;Nguon sequence&lt;/b&gt;&lt;br&gt;Checkout.jsx 7-150&lt;br&gt;Orders.jsx 21-41&lt;br&gt;orderController.js 6-31, 51-53" style="shape=note;whiteSpace=wrap;html=1;size=14;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="1180" y="860" width="260" height="100" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
