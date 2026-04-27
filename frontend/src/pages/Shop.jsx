@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import API_BASE_URL from '../apiConfig';
+import { getProductImageFallback, handleProductImageError } from '../utils/productImageFallback';
 
 const PRICE_RANGES = [
   { label: 'Dưới 200.000đ', min: 0, max: 200000 },
@@ -328,7 +329,12 @@ const Shop = () => {
                 {filteredProducts.map((product) => (
                   <div key={product._id} className="bg-white rounded-[2.5rem] shadow-sm hover:shadow-2xl transition-all duration-500 border border-slate-100 overflow-hidden flex flex-col group">
                     <Link to={`/product/${product._id}`} className="block relative aspect-[4/5] overflow-hidden bg-slate-100">
-                      <img src={product.image} alt={product.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
+                      <img
+                        src={product.image || getProductImageFallback(product.name)}
+                        alt={product.name}
+                        onError={(event) => handleProductImageError(event, product.name)}
+                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                      />
                       {product.countInStock === 0 && (
                         <div className="absolute top-5 right-5 bg-slate-900/90 text-white text-[10px] font-black uppercase px-4 py-1.5 rounded-full backdrop-blur-md">
                           Hết hàng

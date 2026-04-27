@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import API_BASE_URL from '../apiConfig';
+import { getProductImageFallback, handleProductImageError } from '../utils/productImageFallback';
 
 const Management = () => {
   const [activeTab, setActiveTab] = useState('revenue');
@@ -432,7 +433,12 @@ const Management = () => {
                       <td className="p-6">
                         <div className="flex items-center gap-4">
                           <div className="w-14 h-14 rounded-2xl overflow-hidden shadow-sm border border-slate-100 bg-slate-50">
-                            <img src={p.image} alt={p.name} className="w-full h-full object-cover group-hover:scale-110 transition-all duration-500" />
+                            <img
+                              src={p.image || getProductImageFallback(p.name)}
+                              alt={p.name}
+                              onError={(event) => handleProductImageError(event, p.name)}
+                              className="w-full h-full object-cover group-hover:scale-110 transition-all duration-500"
+                            />
                           </div>
                           <div>
                             <p className="font-black text-slate-800 line-clamp-1">{p.name}</p>
@@ -885,7 +891,12 @@ const Management = () => {
                   {selectedOrder.orderItems.map((item, idx) => (
                     <div key={idx} className="flex gap-6 p-4 rounded-2xl border border-slate-50 bg-slate-50/50 group hover:bg-white hover:border-slate-100 hover:shadow-lg transition-all duration-300">
                       <div className="w-20 h-20 shrink-0 rounded-xl overflow-hidden shadow-sm border border-white">
-                        <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
+                        <img
+                          src={item.image || getProductImageFallback(item.name)}
+                          alt={item.name}
+                          onError={(event) => handleProductImageError(event, item.name)}
+                          className="w-full h-full object-cover"
+                        />
                       </div>
                       <div className="flex-grow flex flex-col justify-center">
                         <h4 className="font-black text-slate-800 text-sm leading-tight mb-1">{item.name}</h4>

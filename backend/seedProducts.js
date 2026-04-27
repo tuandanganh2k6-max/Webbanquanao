@@ -52,7 +52,7 @@ const products = [
   },
   {
     name: 'Áo Sơ Mi Flannel Caro Đỏ',
-    image: 'https://images.unsplash.com/photo-1598411037848-9cda9ee4c399?q=80&w=1000&auto=format&fit=crop',
+    image: 'https://images.unsplash.com/photo-1603252109303-2751441dd157?q=80&w=1200&auto=format&fit=crop',
     description: 'Họa tiết caro vintage, chất liệu dạ mỏng ấm áp cho mùa thu đông.',
     brand: 'T-Shop Retro',
     category: 'Áo Sơ Mi',
@@ -88,7 +88,7 @@ const products = [
   },
   {
     name: 'Áo Khoác Gió Windbreaker Tech',
-    image: 'https://images.unsplash.com/photo-1544923246-77307dd654ca?q=80&w=1000&auto=format&fit=crop',
+    image: 'https://images.unsplash.com/photo-1523398002811-999ca8dec234?q=80&w=1200&auto=format&fit=crop',
     description: 'Chống thấm nước nhẹ, cản gió tuyệt đối, thích hợp đi phượt.',
     brand: 'Techwear Lab',
     category: 'Áo Khoác',

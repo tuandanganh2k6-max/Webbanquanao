@@ -1,5 +1,6 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
+import { getProductImageFallback, handleProductImageError } from '../utils/productImageFallback';
 
 const Cart = () => {
   const { cartItems, removeFromCart } = useCart();
@@ -36,7 +37,12 @@ const Cart = () => {
                   {cartItems.map((item) => (
                     <li key={item.cartId} className="p-6 flex flex-col sm:flex-row items-center gap-6 group hover:bg-slate-50 transition-colors">
                       <div className="w-24 h-24 flex-shrink-0 rounded-xl overflow-hidden bg-slate-100">
-                        <img src={item.image} alt={item.name} className="w-full h-full object-center object-cover" />
+                        <img
+                          src={item.image || getProductImageFallback(item.name)}
+                          alt={item.name}
+                          onError={(event) => handleProductImageError(event, item.name)}
+                          className="w-full h-full object-center object-cover"
+                        />
                       </div>
                       <div className="flex-1 w-full text-center sm:text-left">
                         <h3 className="text-lg font-bold text-slate-900 mb-1">

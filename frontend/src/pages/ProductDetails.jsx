@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import API_BASE_URL from '../apiConfig';
 import { useCart } from '../context/CartContext';
+import { getProductImageFallback, handleProductImageError } from '../utils/productImageFallback';
 
 const ProductDetails = () => {
   const { id } = useParams();
@@ -77,7 +78,12 @@ const ProductDetails = () => {
           {/* Product Image */}
           <div className="md:w-1/2">
             <div className="aspect-[4/5] rounded-[2rem] overflow-hidden bg-slate-100 relative group shadow-2xl">
-              <img src={product.image} alt={product.name} className="object-cover w-full h-full transform group-hover:scale-110 transition-transform duration-700" />
+              <img
+                src={product.image || getProductImageFallback(product.name)}
+                alt={product.name}
+                onError={(event) => handleProductImageError(event, product.name)}
+                className="object-cover w-full h-full transform group-hover:scale-110 transition-transform duration-700"
+              />
             </div>
           </div>
           

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import API_BASE_URL from '../apiConfig';
 import { useCart } from '../context/CartContext';
+import { getProductImageFallback, handleProductImageError } from '../utils/productImageFallback';
 
 const Checkout = () => {
   const { cartItems, clearCart } = useCart();
@@ -344,7 +345,12 @@ const Checkout = () => {
               <div className="space-y-4 mb-6 border-b pb-6 max-h-96 overflow-y-auto">
                 {cartItems.map((item) => (
                   <div key={item.cartId} className="flex gap-4">
-                    <img src={item.image} alt={item.name} className="w-16 h-16 object-cover rounded-lg" />
+                    <img
+                      src={item.image || getProductImageFallback(item.name)}
+                      alt={item.name}
+                      onError={(event) => handleProductImageError(event, item.name)}
+                      className="w-16 h-16 object-cover rounded-lg"
+                    />
                     <div>
                       <h4 className="text-sm font-bold text-slate-800 line-clamp-1">{item.name}</h4>
                       <p className="text-xs text-slate-500">Màu: {item.color} | Size: {item.size}</p>

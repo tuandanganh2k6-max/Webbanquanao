@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import API_BASE_URL from '../apiConfig';
+import { getProductImageFallback, handleProductImageError } from '../utils/productImageFallback';
 
 const Orders = () => {
   const [orders, setOrders] = useState([]);
@@ -115,10 +116,11 @@ const Orders = () => {
                     
                     <div className="flex -space-x-3 overflow-hidden mb-4">
                       {order.orderItems.map((item, idx) => (
-                        <img 
+                        <img
                           key={idx}
-                          src={item.image} 
-                          alt={item.name} 
+                          src={item.image || getProductImageFallback(item.name)}
+                          alt={item.name}
+                          onError={(event) => handleProductImageError(event, item.name)}
                           className="w-12 h-12 rounded-xl border-4 border-white object-cover shadow-sm bg-slate-50"
                         />
                       ))}
@@ -222,7 +224,12 @@ const Orders = () => {
                   <div className="space-y-6">
                     {selectedOrder.orderItems.map((item, idx) => (
                       <div key={idx} className="flex gap-4 sm:gap-6">
-                        <img src={item.image} alt={item.name} className="w-20 h-20 sm:w-24 sm:h-24 object-cover rounded-2xl shadow-sm border border-white" />
+                        <img
+                          src={item.image || getProductImageFallback(item.name)}
+                          alt={item.name}
+                          onError={(event) => handleProductImageError(event, item.name)}
+                          className="w-20 h-20 sm:w-24 sm:h-24 object-cover rounded-2xl shadow-sm border border-white"
+                        />
                         <div className="flex-grow flex flex-col justify-center">
                           <h4 className="font-black text-slate-800 text-sm sm:text-base leading-tight mb-1">{item.name}</h4>
                           <p className="text-xs text-slate-400 font-bold uppercase tracking-widest mb-2 italic">{item.category}</p>

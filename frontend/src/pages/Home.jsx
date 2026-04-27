@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import API_BASE_URL from '../apiConfig';
+import { getProductImageFallback, handleProductImageError } from '../utils/productImageFallback';
 
 const Home = () => {
   const [products, setProducts] = useState([]);
@@ -75,9 +76,10 @@ const Home = () => {
               {products.map((product) => (
                 <div key={product._id} className="group flex flex-col bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden hover:shadow-2xl transition-all duration-500 cursor-pointer">
                   <Link to={`/product/${product._id}`} className="relative aspect-[3/4] overflow-hidden bg-slate-100">
-                    <img 
-                      src={product.image} 
-                      alt={product.name} 
+                    <img
+                      src={product.image || getProductImageFallback(product.name)}
+                      alt={product.name}
+                      onError={(event) => handleProductImageError(event, product.name)}
                       className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
                     />
                     {product.countInStock === 0 && (
