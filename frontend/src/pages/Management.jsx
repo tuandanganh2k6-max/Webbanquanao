@@ -344,7 +344,16 @@ const Management = () => {
 
   const isAdmin = userInfo?.role === 'admin';
 
-  if (loading) return <div className="min-h-screen flex items-center justify-center font-bold text-slate-500 italic">SYNCING DATABASE...</div>;
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-50">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+          <p className="text-slate-500 font-bold italic animate-pulse">Đang tải dữ liệu quản trị...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-slate-50 py-10 px-4 sm:px-6 lg:px-8 font-sans">
@@ -454,10 +463,10 @@ const Management = () => {
         {activeTab === 'products' && (
           <div className="bg-white rounded-[2.5rem] shadow-sm border border-slate-100 overflow-hidden animate-in slide-in-from-bottom duration-500">
             <div className="p-8 border-b border-slate-100 flex items-center justify-between">
-               <h2 className="text-2xl font-black text-slate-800 uppercase italic">Inventory Controller</h2>
+               <h2 className="text-2xl font-black text-slate-800 uppercase italic">Quản Lý Kho Hàng</h2>
                {isAdmin && (
                  <button onClick={() => setShowProductModal(true)} className="px-6 py-3 bg-blue-600 text-white font-black rounded-2xl shadow-lg hover:shadow-blue-500/50 transition-all active:scale-95">
-                   + ADD PRODUCT
+                   + THÊM SẢN PHẨM
                  </button>
                )}
             </div>
@@ -465,10 +474,10 @@ const Management = () => {
               <table className="w-full text-left">
                 <thead className="bg-slate-50 border-b border-slate-100">
                   <tr className="text-slate-400 text-[10px] uppercase font-black tracking-[0.2em] leading-loose">
-                    <th className="p-6">Entity</th>
-                    <th className="p-6">Costing</th>
-                    <th className="p-6">Availability</th>
-                    <th className="p-6 text-center">Operation</th>
+                    <th className="p-6">Sản phẩm</th>
+                    <th className="p-6">Giá bán</th>
+                    <th className="p-6">Tồn kho</th>
+                    <th className="p-6 text-center">Thao tác</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
@@ -797,33 +806,33 @@ const Management = () => {
               <button onClick={() => setShowProductModal(false)} className="absolute top-6 right-6 p-2 bg-slate-50 rounded-full">
                 <svg className="w-6 h-6 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"/></svg>
               </button>
-              <h3 className="text-3xl font-black text-slate-900 mb-8 italic uppercase tracking-tighter">Manifest New Entity</h3>
+              <h3 className="text-3xl font-black text-slate-900 mb-8 italic uppercase tracking-tighter">Thêm Sản Phẩm Mới</h3>
               <form onSubmit={handleProductSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-6">
                  <div>
-                   <label className="text-[9px] font-black uppercase tracking-widest text-slate-400">Identity Name</label>
+                   <label className="text-[9px] font-black uppercase tracking-widest text-slate-400">Tên sản phẩm</label>
                    <input required type="text" value={productForm.name} onChange={(e) => setProductForm({...productForm, name: e.target.value})} className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-5 py-4 font-bold" />
                  </div>
                  <div>
-                   <label className="text-[9px] font-black uppercase tracking-widest text-slate-400">Unit Cost (VND)</label>
+                   <label className="text-[9px] font-black uppercase tracking-widest text-slate-400">Giá bán (VND)</label>
                    <input required type="number" value={productForm.price || ''} onChange={(e) => setProductForm({...productForm, price: Number(e.target.value)})} className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-5 py-4 font-bold" />
                  </div>
                  <div>
-                   <label className="text-[9px] font-black uppercase tracking-widest text-slate-400">Category Tag</label>
+                   <label className="text-[9px] font-black uppercase tracking-widest text-slate-400">Danh mục</label>
                    <input required type="text" value={productForm.category} onChange={(e) => setProductForm({...productForm, category: e.target.value})} className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-5 py-4 font-bold" />
                  </div>
                  <div>
-                   <label className="text-[9px] font-black uppercase tracking-widest text-slate-400">Brand License</label>
+                   <label className="text-[9px] font-black uppercase tracking-widest text-slate-400">Thương hiệu</label>
                    <input required type="text" value={productForm.brand} onChange={(e) => setProductForm({...productForm, brand: e.target.value})} className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-5 py-4 font-bold" />
                  </div>
                  <div className="md:col-span-2">
-                   <label className="text-[9px] font-black uppercase tracking-widest text-slate-400">Visual URL (HTTP/HTTPS)</label>
+                   <label className="text-[9px] font-black uppercase tracking-widest text-slate-400">Liên kết ảnh (HTTP/HTTPS)</label>
                    <input required type="text" value={productForm.image} onChange={(e) => setProductForm({...productForm, image: e.target.value})} className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-5 py-4 font-medium text-blue-500 underline" />
                  </div>
                  <div className="md:col-span-2">
-                   <label className="text-[9px] font-black uppercase tracking-widest text-slate-400">Detailed Specification</label>
+                   <label className="text-[9px] font-black uppercase tracking-widest text-slate-400">Mô tả chi tiết</label>
                    <textarea required rows="4" value={productForm.description} onChange={(e) => setProductForm({...productForm, description: e.target.value})} className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-5 py-4 font-medium resize-none shadow-inner" />
                  </div>
-                 <button className="md:col-span-2 py-5 bg-slate-900 text-white font-black rounded-3xl shadow-2xl hover:bg-blue-600 transition-all uppercase tracking-[0.4em]">Confirm Listing</button>
+                 <button className="md:col-span-2 py-5 bg-slate-900 text-white font-black rounded-3xl shadow-2xl hover:bg-blue-600 transition-all uppercase tracking-[0.4em]">Xác Nhận Thêm</button>
               </form>
            </div>
         </div>
