@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import API_BASE_URL from '../apiConfig';
 
 const SideAds = () => {
   const [ads, setAds] = useState([]);
@@ -8,7 +9,7 @@ const SideAds = () => {
   useEffect(() => {
     const fetchAds = async () => {
       try {
-        const res = await fetch('/api/ads');
+        const res = await fetch(`${API_BASE_URL}/api/ads`);
         const data = await res.json();
         if (res.ok) {
           setAds(Array.isArray(data) ? data : []);

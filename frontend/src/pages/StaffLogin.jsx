@@ -1,5 +1,5 @@
-import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import API_BASE_URL from '../apiConfig';
 
 const StaffLogin = () => {
   const [email, setEmail] = useState('');
@@ -16,7 +16,7 @@ const StaffLogin = () => {
     setLoading(true);
 
     try {
-      const response = await fetch('/api/users/login', {
+      const response = await fetch(`${API_BASE_URL}/api/users/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

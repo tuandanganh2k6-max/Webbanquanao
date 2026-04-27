@@ -1,5 +1,5 @@
-import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import API_BASE_URL from '../apiConfig';
 
 const Register = () => {
   const [formData, setFormData] = useState({
@@ -31,7 +31,7 @@ const Register = () => {
 
     setLoading(true);
     try {
-      const response = await fetch('/api/users', {
+      const response = await fetch(`${API_BASE_URL}/api/users`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
