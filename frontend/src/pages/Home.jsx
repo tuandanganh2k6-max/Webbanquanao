@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import API_BASE_URL from '../apiConfig';
 
 const Home = () => {
   const [products, setProducts] = useState([]);
@@ -8,7 +9,7 @@ const Home = () => {
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const response = await fetch('/api/products');
+        const response = await fetch(`${API_BASE_URL}/api/products`);
         const data = await response.json();
         setProducts(data.slice(0, 4)); // Get top 4 for featured
       } catch (error) {

@@ -126,4 +126,62 @@ const getRevenue = async (req, res, next) => {
   }
 };
 
-module.exports = { addOrderItems, getOrderById, getMyOrders, getOrders, updateOrderToDelivered, getRevenue };
+// @desc    Delete an order
+// @route   DELETE /api/orders/:id
+// @access  Private/Admin
+const deleteOrder = async (req, res, next) => {
+  try {
+    const order = await Order.findById(req.params.id);
+    if (order) {
+      await order.deleteOne();
+      res.json({ message: 'Order removed' });
+    } else {
+      res.status(404).json({ message: 'Order not found' });
+    }
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Update order status
+// @route   PUT /api/orders/:id/status
+// @access  Private/Staff
+const updateOrderStatus = async (req, res, next) => {
+  try {
+    const order = await Order.findById(req.params.id);
+    if (order) {
+      order.status = req.body.status;
+      if (req.body.status === 'Thành công') {
+        order.isDelivered = true;
+        order.deliveredAt = Date.now();
+      }
+      const updatedOrder = await order.save();
+      res.json(updatedOrder);
+    } else {
+      res.status(404).json({ message: 'Order not found' });
+    }
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Add message to order
+// @route   POST /api/orders/:id/message
+// @access  Private
+const addOrderMessage = async (req, res, next) => {
+  try {
+    const order = await Order.findById(req.params.id);
+    if (order) {
+      const { text, sender } = req.body;
+      order.messages.push({ text, sender, createdAt: Date.now() });
+      const updatedOrder = await order.save();
+      res.json(updatedOrder);
+    } else {
+      res.status(404).json({ message: 'Order not found' });
+    }
+  } catch (error) {
+    next(error);
+  }
+};
+
+module.exports = { addOrderItems, getOrderById, getMyOrders, getOrders, updateOrderToDelivered, getRevenue, deleteOrder, updateOrderStatus, addOrderMessage };

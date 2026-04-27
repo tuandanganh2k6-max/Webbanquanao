@@ -47,7 +47,10 @@ const Navbar = () => {
               </Link>
             )}
             {userInfo && (
-              <Link to="/orders" className="text-sm font-bold text-slate-600 hover:text-blue-600 transition-colors uppercase tracking-tight">Lịch sử</Link>
+              <Link to="/orders" className="text-sm font-bold text-slate-600 hover:text-blue-600 transition-colors uppercase tracking-tight flex items-center gap-1">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg>
+                Đơn hàng
+              </Link>
             )}
           </nav>
 
@@ -69,6 +72,13 @@ const Navbar = () => {
                 <span className="hidden sm:block text-sm font-bold text-slate-700 truncate max-w-[120px]">
                   {userInfo.name}
                 </span>
+                <Link 
+                  to="/orders"
+                  className="p-2 text-slate-600 hover:text-blue-600 transition-colors"
+                  title="Đơn hàng của tôi"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+                </Link>
                 <button 
                   onClick={logoutHandler}
                   className="inline-flex items-center justify-center px-4 py-2 text-xs font-black text-white bg-slate-900 rounded-full hover:bg-slate-800 transition-all uppercase tracking-tighter"

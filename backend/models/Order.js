@@ -31,6 +31,17 @@ const orderSchema = new mongoose.Schema({
   paidAt: { type: Date },
   isDelivered: { type: Boolean, required: true, default: false },
   deliveredAt: { type: Date },
+  status: { 
+    type: String, 
+    required: true, 
+    enum: ['Chờ xác nhận', 'Đã xác nhận', 'Đang giao hàng', 'Thành công', 'Đã hủy'],
+    default: 'Chờ xác nhận' 
+  },
+  messages: [{
+    sender: { type: String, required: true }, // 'User' hoặc 'Staff'
+    text: { type: String, required: true },
+    createdAt: { type: Date, default: Date.now }
+  }]
 }, { timestamps: true });
 
 module.exports = mongoose.model('Order', orderSchema);

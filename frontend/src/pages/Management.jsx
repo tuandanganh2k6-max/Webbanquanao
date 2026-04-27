@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import API_BASE_URL from '../apiConfig';
 
 const Management = () => {
   const [activeTab, setActiveTab] = useState('revenue');
@@ -13,12 +13,15 @@ const Management = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [userInfo, setUserInfo] = useState(null);
+  const [filterDate, setFilterDate] = useState('');
+  const [msgText, setMsgText] = useState('');
 
   const [adForm, setAdForm] = useState({ brandName: '', duration: '1 Tháng', fee: 0, image: '', url: '' });
   const [productForm, setProductForm] = useState({ name: '', price: 0, description: '', image: '', category: '', brand: '', countInStock: 0 });
   const [showProductModal, setShowProductModal] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(null);
   const [confirmDeleteUser, setConfirmDeleteUser] = useState(null);
+  const [confirmDeleteAd, setConfirmDeleteAd] = useState(null);
   const [showManagerModal, setShowManagerModal] = useState(false);
   const [managerForm, setManagerForm] = useState({ name: '', email: '', password: '' });
   const [selectedOrder, setSelectedOrder] = useState(null);
@@ -42,8 +45,8 @@ const Management = () => {
     try {
       // Fetch public + revenue data concurrently
       const [revRes, prodRes] = await Promise.all([
-        fetch('/api/orders/revenue', { headers }).catch(() => null),
-        fetch('/api/products').catch(() => null)
+        fetch(`${API_BASE_URL}/api/orders/revenue`, { headers }).catch(() => null),
+        fetch(`${API_BASE_URL}/api/products`).catch(() => null)
       ]);
 
       if (prodRes?.ok) {
@@ -56,11 +59,11 @@ const Management = () => {
       }
 
       // Admin-only: fetch users and ads
-      if (user.role === 'admin') {
-        const [uRes, aRes] = await Promise.all([
-          fetch('/api/users', { headers }).catch(() => null),
-          fetch('/api/ads', { headers }).catch(() => null),
-          fetch('/api/orders', { headers }).catch(() => null)
+      if (user.role === 'admin' || user.role === 'manager') {
+        const [uRes, aRes, oRes] = await Promise.all([
+          fetch(`${API_BASE_URL}/api/users`, { headers }).catch(() => null),
+          fetch(`${API_BASE_URL}/api/ads`, { headers }).catch(() => null),
+          fetch(`${API_BASE_URL}/api/orders`, { headers }).catch(() => null)
         ]);
         if (uRes?.ok) {
           const uData = await uRes.json();
@@ -92,7 +95,7 @@ const Management = () => {
   const handleAdSubmit = async (e) => {
     e.preventDefault();
     try {
-      const res = await fetch('/api/ads', {
+      const res = await fetch(`${API_BASE_URL}/api/ads`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${userInfo.token}` },
         body: JSON.stringify(adForm)
@@ -106,7 +109,7 @@ const Management = () => {
   };
 
   const deleteAd = async (id) => {
-    if (!window.confirm('Bạn có chắc chắn muốn gỡ quảng cáo này?')) return;
+    setConfirmDeleteAd(null);
     try {
       const res = await fetch(`/api/ads/${id}`, {
         method: 'DELETE',
@@ -114,6 +117,7 @@ const Management = () => {
       });
       if (res.ok) {
         setData(prev => ({ ...prev, ads: prev.ads.filter(a => a._id !== id) }));
+        alert('Đã xóa hợp đồng quảng cáo thành công');
       } else {
         const data = await res.json();
         alert(data.message || 'Lỗi xóa quảng cáo');
@@ -124,7 +128,7 @@ const Management = () => {
   const handleProductSubmit = async (e) => {
     e.preventDefault();
     try {
-      const res = await fetch('/api/products', {
+      const res = await fetch(`${API_BASE_URL}/api/products`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${userInfo.token}` },
         body: JSON.stringify(productForm)
@@ -190,7 +194,7 @@ const Management = () => {
   const createManager = async (e) => {
     e.preventDefault();
     try {
-      const res = await fetch('/api/users/manager', {
+      const res = await fetch(`${API_BASE_URL}/api/users/manager`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${userInfo.token}` },
         body: JSON.stringify(managerForm)
@@ -204,9 +208,71 @@ const Management = () => {
     } catch (err) { alert(err.message); }
   };
 
+  const deleteOrder = async (id) => {
+    if (!window.confirm('Bạn có chắc chắn muốn xóa vĩnh viễn đơn hàng này? Thao tác này sẽ làm giảm doanh thu tương ứng.')) return;
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/orders/${id}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${userInfo.token}` }
+      });
+      if (res.ok) {
+        setData(prev => ({ 
+          ...prev, 
+          orders: prev.orders.filter(o => o._id !== id) 
+        }));
+        // Refresh revenue data after deletion
+        fetchAllData(userInfo);
+      } else {
+        const data = await res.json();
+        alert(data.message || 'Lỗi xóa đơn hàng');
+      }
+    } catch (err) { alert('Lỗi kết nối'); }
+  };
+
+  const handleStatusUpdate = async (id, newStatus) => {
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/orders/${id}/status`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${userInfo.token}` },
+        body: JSON.stringify({ status: newStatus })
+      });
+      if (!res.ok) throw new Error('Lỗi cập nhật trạng thái');
+      const updatedOrder = await res.json();
+      setData(prev => ({
+        ...prev,
+        orders: prev.orders.map(o => o._id === id ? updatedOrder : o)
+      }));
+      if (selectedOrder?._id === id) setSelectedOrder(updatedOrder);
+      alert(`Đã cập nhật trạng thái: ${newStatus}`);
+    } catch (err) { alert(err.message); }
+  };
+
+  const sendOrderMessage = async (orderId) => {
+    if (!msgText.trim()) return;
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/orders/${orderId}/message`, {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${userInfo.token}`
+        },
+        body: JSON.stringify({ text: msgText, sender: 'Staff' })
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setSelectedOrder(data);
+        setData(prev => ({
+          ...prev,
+          orders: prev.orders.map(o => o._id === orderId ? data : o)
+        }));
+        setMsgText('');
+      }
+    } catch (err) { console.error(err); }
+  };
+
   const handleDeliver = async (id) => {
     try {
-      const res = await fetch(`/api/orders/${id}/deliver`, {
+      const res = await fetch(`${API_BASE_URL}/api/orders/${id}/deliver`, {
         method: 'PUT',
         headers: { Authorization: `Bearer ${userInfo.token}` }
       });
@@ -224,6 +290,10 @@ const Management = () => {
     const lastActiveDate = new Date(lastActive);
     const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
     return lastActiveDate > fiveMinutesAgo;
+  };
+
+  const handlePrint = () => {
+    window.print();
   };
 
   const isAdmin = userInfo?.role === 'admin';
@@ -263,26 +333,42 @@ const Management = () => {
                   <div className="px-4 py-1.5 bg-blue-500/10 border border-blue-500/20 rounded-full text-blue-400 text-[10px] font-black uppercase tracking-widest flex items-center gap-2">
                     <span className="w-2 h-2 bg-blue-500 rounded-full animate-ping"></span> Live Monitoring
                   </div>
+                  <button 
+                    onClick={handlePrint}
+                    className="px-6 py-1.5 bg-white text-slate-900 rounded-full text-[10px] font-black uppercase tracking-widest hover:bg-blue-600 hover:text-white transition-all shadow-xl flex items-center gap-2"
+                  >
+                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
+                    Xuất Báo Cáo PDF
+                  </button>
                </div>
+            </div>
+
+            <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+               <h3 className="text-xl font-black text-slate-800 uppercase tracking-tighter">Daily Analytics</h3>
+               {filterDate && (
+                 <div className="px-4 py-2 bg-blue-50 text-blue-600 rounded-2xl text-[10px] font-black uppercase tracking-widest border border-blue-100 flex items-center gap-2">
+                   📅 Đang lọc: {filterDate}
+                   <button onClick={() => setFilterDate('')} className="p-1 hover:bg-blue-100 rounded-full"><svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M6 18L18 6M6 6l12 12"/></svg></button>
+                 </div>
+               )}
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
               <div className="bg-white p-8 rounded-[2.5rem] shadow-sm border border-slate-100">
-                <h3 className="text-xl font-black text-slate-800 mb-6 uppercase tracking-tighter">Daily Performance</h3>
                 <div className="overflow-x-auto">
                   <table className="w-full text-left">
                     <thead>
                       <tr className="border-b border-slate-50 text-slate-400 text-[10px] uppercase font-black tracking-widest leading-loose">
                         <th className="pb-4">Date</th>
-                        <th className="pb-4">Volume</th>
-                        <th className="pb-4 text-right">Value</th>
+                        <th className="pb-4">Activity</th>
+                        <th className="pb-4 text-right">Revenue</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-50">
                       {(data.revenue?.dailyStats || []).map(s => (
-                        <tr key={s._id} className="hover:bg-slate-50 transition-colors">
+                        <tr key={s._id} onClick={() => setFilterDate(s._id)} className={`hover:bg-slate-50 transition-colors cursor-pointer group ${filterDate === s._id ? 'bg-blue-50' : ''}`}>
                           <td className="py-4 text-sm font-bold text-slate-700">{s._id}</td>
-                          <td className="py-4 text-sm text-slate-400 font-medium">{s.count} transactions</td>
+                          <td className="py-4 text-sm text-slate-400 font-medium">{s.count} orders</td>
                           <td className="py-4 text-sm font-black text-blue-600 text-right">{s.total.toLocaleString('vi-VN')} đ</td>
                         </tr>
                       ))}
@@ -291,27 +377,27 @@ const Management = () => {
                 </div>
               </div>
 
-              <div className="bg-white p-8 rounded-[2.5rem] shadow-sm border border-slate-100">
-                <h3 className="text-xl font-black text-slate-800 mb-6 uppercase tracking-tighter">Monthly Analytics</h3>
-                <div className="overflow-x-auto">
-                  <table className="w-full text-left">
-                    <thead>
-                      <tr className="border-b border-slate-50 text-slate-400 text-[10px] uppercase font-black tracking-widest leading-loose">
-                        <th className="pb-4">Period</th>
-                        <th className="pb-4">Growth</th>
-                        <th className="pb-4 text-right">Revenue</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-50">
-                      {(data.revenue?.monthlyStats || []).map(s => (
-                        <tr key={s._id} className="hover:bg-slate-50 transition-colors">
-                          <td className="py-4 text-sm font-bold text-slate-700">{s._id}</td>
-                          <td className="py-4 text-sm text-slate-400 font-medium">{s.count} deals</td>
-                          <td className="py-4 text-sm font-black text-indigo-600 text-right">{s.total.toLocaleString('vi-VN')} đ</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
+              <div className="bg-white p-8 rounded-[2.5rem] shadow-sm border border-slate-100 flex flex-col">
+                <h3 className="text-xl font-black text-slate-800 mb-6 uppercase tracking-tighter">Detailed Breakdown</h3>
+                <div className="space-y-4 flex-grow">
+                  {data.orders
+                    .filter(o => !filterDate || new Date(o.createdAt).toLocaleDateString('en-CA') === filterDate)
+                    .slice(0, 8)
+                    .map(o => (
+                      <div key={o._id} className="p-4 bg-slate-50 rounded-2xl flex items-center justify-between border border-slate-100 hover:bg-white hover:shadow-md transition-all">
+                         <div>
+                            <div className="text-[10px] font-black text-slate-800">#{o._id.slice(-6).toUpperCase()}</div>
+                            <div className="text-[9px] text-slate-400 font-bold uppercase">{o.user?.name || 'Customer'}</div>
+                         </div>
+                         <div className="text-sm font-black text-blue-600">{o.totalPrice.toLocaleString()}đ</div>
+                      </div>
+                    ))}
+                  {(!filterDate || data.orders.filter(o => new Date(o.createdAt).toLocaleDateString('en-CA') === filterDate).length === 0) && (
+                    <div className="flex flex-col items-center justify-center h-full py-10 opacity-30">
+                       <svg className="w-12 h-12 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+                       <p className="text-[10px] font-black uppercase tracking-widest">Gõ ngày hoặc chọn từ bảng bên trái</p>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -393,16 +479,26 @@ const Management = () => {
         {/* ORDERS MANAGEMENT TAB */}
         {activeTab === 'orders_list' && (
           <div className="space-y-6 animate-in slide-in-from-left duration-500">
-            <div className="flex items-center justify-between">
-              <h2 className="text-2xl font-black text-slate-800 uppercase italic">Order Fulfillment</h2>
-              <div className="flex gap-2">
-                <span className="px-4 py-1.5 bg-white border border-slate-100 rounded-full text-[10px] font-black uppercase text-slate-400">Total: {data.orders.length}</span>
-                <span className="px-4 py-1.5 bg-amber-50 border border-amber-100 rounded-full text-[10px] font-black uppercase text-amber-600">Pending: {data.orders.filter(o => !o.isDelivered).length}</span>
-              </div>
+            <div className="flex flex-col md:flex-row items-center justify-between gap-4 mb-6">
+               <h2 className="text-2xl font-black text-slate-800 uppercase italic">Order Fulfillment</h2>
+               <div className="bg-white p-3 rounded-2xl shadow-sm border border-slate-100 flex items-center gap-3">
+                 <span className="text-[9px] font-black uppercase text-slate-400">Filter By Date:</span>
+                 <input 
+                   type="date" 
+                   value={filterDate} 
+                   onChange={(e) => setFilterDate(e.target.value)}
+                   className="bg-slate-50 border-none text-[11px] font-bold rounded-lg focus:ring-2 focus:ring-blue-500"
+                 />
+                 {filterDate && (
+                   <button onClick={() => setFilterDate('')} className="text-red-500 text-[10px] font-black uppercase">Clear</button>
+                 )}
+               </div>
             </div>
 
             <div className="grid grid-cols-1 gap-4">
-              {data.orders.map(order => (
+              {data.orders
+                .filter(o => !filterDate || new Date(o.createdAt).toLocaleDateString('en-CA') === filterDate)
+                .map(order => (
                 <div 
                   key={order._id} 
                   onClick={() => setSelectedOrder(order)}
@@ -415,7 +511,7 @@ const Management = () => {
                     <div>
                       <h4 className="font-black text-slate-800 text-lg tracking-tighter uppercase leading-none">#{order._id.slice(-6).toUpperCase()}</h4>
                       <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">Customer: <span className="text-slate-900">{order.user?.name || 'Anonymous'}</span></p>
-                      <p className="text-[9px] text-slate-400 font-mono mt-1">{new Date(order.createdAt).toLocaleString('vi-VN')}</p>
+                      <p className="text-[10px] text-slate-400 font-mono mt-1">{new Date(order.createdAt).toLocaleString('vi-VN')}</p>
                       <p className="text-[8px] font-bold text-blue-600 mt-2">CLICK TO VIEW ITEMS →</p>
                     </div>
                   </div>
@@ -438,26 +534,39 @@ const Management = () => {
                     </div>
                   </div>
 
-                  <div className="shrink-0 flex gap-2">
-                    {!order.isDelivered ? (
+                  <div className="shrink-0 flex items-center gap-4">
+                    {isAdmin && (
                       <button 
-                        onClick={() => handleDeliver(order._id)}
-                        className="px-6 py-3 bg-blue-600 text-white text-xs font-black rounded-2xl shadow-lg hover:shadow-blue-500/50 hover:-translate-y-1 transition-all active:scale-95"
+                        onClick={(e) => { e.stopPropagation(); deleteOrder(order._id); }}
+                        className="p-3 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-2xl transition-all"
+                        title="Xóa đơn hàng"
                       >
-                        MARK AS DELIVERED
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                       </button>
-                    ) : (
-                      <div className="px-6 py-3 bg-slate-50 text-slate-300 text-xs font-black rounded-2xl flex items-center gap-2 border border-slate-100">
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7"/></svg>
-                        COMPLETED
-                      </div>
                     )}
+                    
+                    <select 
+                      onClick={(e) => e.stopPropagation()}
+                      value={order.status || 'Chờ xác nhận'}
+                      onChange={(e) => handleStatusUpdate(order._id, e.target.value)}
+                      className={`px-4 py-2.5 rounded-2xl text-[11px] font-black uppercase tracking-tight border transition-all cursor-pointer ${
+                        order.status === 'Thành công' ? 'bg-green-50 text-green-600 border-green-100' :
+                        order.status === 'Đã hủy' ? 'bg-red-50 text-red-600 border-red-100' :
+                        'bg-blue-50 text-blue-600 border-blue-100'
+                      }`}
+                    >
+                      <option value="Chờ xác nhận">Chờ xác nhận</option>
+                      <option value="Đã xác nhận">Đã xác nhận</option>
+                      <option value="Đang giao hàng">Đang giao hàng</option>
+                      <option value="Thành công">Thành công</option>
+                      <option value="Đã hủy">Đã hủy</option>
+                    </select>
                   </div>
                 </div>
               ))}
-              {data.orders.length === 0 && (
+              {(data.orders.filter(o => !filterDate || new Date(o.createdAt).toLocaleDateString('en-CA') === filterDate).length === 0) && (
                 <div className="py-20 text-center border-2 border-dashed border-slate-200 rounded-[3rem] italic text-slate-400 font-bold uppercase tracking-widest text-xs">
-                  No orders found in database history.
+                  No orders found for this date.
                 </div>
               )}
             </div>
@@ -585,16 +694,36 @@ const Management = () => {
                             <div className="w-10 h-14 bg-slate-100 rounded-lg overflow-hidden border border-slate-200">
                               <img src={ad.image} alt={ad.brandName} className="w-full h-full object-cover group-hover:scale-125 transition-transform duration-500" />
                             </div>
-                            <span>{ad.brandName}</span>
+                            <div>
+                               <p>{ad.brandName}</p>
+                               <p className="text-[9px] text-slate-400 font-mono">ID: {ad._id.slice(-6).toUpperCase()}</p>
+                            </div>
                           </div>
                         </td>
-                        <td className="py-4 text-slate-400">{ad.duration}</td>
+                        <td className="py-4">
+                           <div className="flex flex-col gap-1">
+                             <span className="px-2 py-0.5 bg-blue-50 text-blue-600 rounded-full text-[9px] font-black w-fit uppercase">{ad.duration}</span>
+                             <span className="text-[9px] text-slate-400 font-bold uppercase">Ký ngày: {new Date(ad.startDate || ad.createdAt).toLocaleDateString('vi-VN')}</span>
+                           </div>
+                        </td>
                         <td className="py-4 text-right">
                           <p className="font-black text-blue-600">{ad.fee.toLocaleString()} đ</p>
-                          <button onClick={() => deleteAd(ad._id)} className="text-[10px] font-black text-red-500 uppercase hover:underline">Revoke</button>
+                          {confirmDeleteAd === ad._id ? (
+                            <div className="flex gap-2 justify-end mt-2">
+                               <button onClick={() => deleteAd(ad._id)} className="px-2 py-1 bg-red-600 text-white text-[9px] font-black rounded-lg">XÁC NHẬN</button>
+                               <button onClick={() => setConfirmDeleteAd(null)} className="px-2 py-1 bg-slate-100 text-slate-600 text-[9px] font-black rounded-lg">HỦY</button>
+                            </div>
+                          ) : (
+                            <button onClick={() => setConfirmDeleteAd(ad._id)} className="text-[10px] font-black text-red-500 uppercase hover:underline mt-1">Gỡ hợp đồng</button>
+                          )}
                         </td>
                       </tr>
                     ))}
+                    {data.ads.length === 0 && (
+                      <tr>
+                        <td colSpan="3" className="py-10 text-center italic text-slate-400">Chưa có hợp đồng quảng cáo nào.</td>
+                      </tr>
+                    )}
                   </tbody>
                 </table>
              </div>

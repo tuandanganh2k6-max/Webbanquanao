@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
+import API_BASE_URL from '../apiConfig';
 
 const PRICE_RANGES = [
   { label: 'Dưới 200.000đ', min: 0, max: 200000 },
@@ -29,7 +30,7 @@ const Shop = () => {
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const response = await fetch('/api/products');
+        const response = await fetch(`${API_BASE_URL}/api/products`);
         const data = await response.json();
         setAllProducts(Array.isArray(data) ? data : []);
       } catch (error) {
