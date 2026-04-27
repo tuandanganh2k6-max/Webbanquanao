@@ -49,6 +49,22 @@ const Checkout = () => {
     setCardInfo((prev) => ({ ...prev, [field]: nextValue }));
   };
 
+  const isCardExpired = (expiry) => {
+    const cleanExpiry = expiry.replace(/\D/g, '');
+    if (cleanExpiry.length !== 4) return true;
+
+    const month = Number(cleanExpiry.slice(0, 2));
+    const year = Number(`20${cleanExpiry.slice(2)}`);
+
+    if (month < 1 || month > 12) return true;
+
+    const now = new Date();
+    const currentMonth = now.getMonth() + 1;
+    const currentYear = now.getFullYear();
+
+    return year < currentYear || (year === currentYear && month < currentMonth);
+  };
+
   if (!userInfo) {
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center py-12 px-4">
@@ -82,6 +98,12 @@ const Checkout = () => {
 
       if (!cardInfo.holderName.trim() || cleanCardNumber.length !== 16 || cleanExpiry.length !== 4 || cleanCvv.length < 3) {
         setError('Vui lòng nhập đầy đủ thông tin thẻ hợp lệ.');
+        setLoading(false);
+        return;
+      }
+
+      if (isCardExpired(cardInfo.expiry)) {
+        setError('Thẻ đã hết hạn hoặc ngày hết hạn không hợp lệ.');
         setLoading(false);
         return;
       }
