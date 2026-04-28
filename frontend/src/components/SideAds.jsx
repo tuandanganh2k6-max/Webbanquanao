@@ -12,7 +12,13 @@ const SideAds = () => {
         const res = await fetch(`${API_BASE_URL}/api/ads`);
         const data = await res.json();
         if (res.ok) {
-          setAds(Array.isArray(data) ? data : []);
+          const activeAds = Array.isArray(data) ? data.filter(ad => {
+            const end = new Date(ad.endDate);
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            return ad.isActive === true && end > today;
+          }) : [];
+          setAds(activeAds);
         }
       } catch (err) {
         console.error('Error fetching ads:', err);

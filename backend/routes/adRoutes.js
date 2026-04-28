@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { getAds, createAd, deleteAd } = require('../controllers/adController');
+const { getAds, createAd, deleteAd, updateAdStatus } = require('../controllers/adController');
 const { protect, admin } = require('../middleware/authMiddleware');
 
 router.route('/')
@@ -9,5 +9,8 @@ router.route('/')
 
 router.route('/:id')
   .delete(protect, admin, deleteAd);
+
+router.route('/:id/status')
+  .put(protect, admin, updateAdStatus);
 
 module.exports = router;

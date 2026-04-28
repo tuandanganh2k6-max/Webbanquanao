@@ -19,7 +19,7 @@ const Management = () => {
   const [msgText, setMsgText] = useState('');
   const [stockDrafts, setStockDrafts] = useState({});
 
-  const [adForm, setAdForm] = useState({ brandName: '', duration: '1 Tháng', fee: 0, image: '', url: '' });
+  const [adForm, setAdForm] = useState({ brandName: '', startDate: '', endDate: '', fee: 0, image: '', url: '' });
   const [productForm, setProductForm] = useState({ name: '', price: 0, description: '', image: '', category: '', brand: '', countInStock: 0 });
   const [showProductModal, setShowProductModal] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(null);
@@ -102,6 +102,13 @@ const Management = () => {
   const handleAdSubmit = async (e) => {
     e.preventDefault();
     try {
+      const end = new Date(adForm.endDate);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      if (end <= today) {
+        throw new Error('Lỗi: Ngày kết thúc hợp đồng phải nằm ở Tương lai (> Hôm nay)!');
+      }
+
       const res = await fetch(`${API_BASE_URL}/api/ads`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${userInfo.token}` },
@@ -110,9 +117,26 @@ const Management = () => {
       const resData = await res.json();
       if (!res.ok) throw new Error(resData.message || 'Lỗi đăng ký');
       setData(prev => ({ ...prev, ads: [...prev.ads, resData] }));
-      setAdForm({ brandName: '', duration: '1 Tháng', fee: 0, image: '', url: '' });
+      setAdForm({ brandName: '', startDate: '', endDate: '', fee: 0, image: '', url: '' });
       alert('Ký kết thành công!');
     } catch (err) { alert(err.message); }
+  };
+
+  const handleToggleAd = async (id, currentStatus) => {
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/ads/${id}/status`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${userInfo.token}` },
+        body: JSON.stringify({ isActive: !currentStatus })
+      });
+      if (res.ok) {
+        const updatedAd = await res.json();
+        setData(prev => ({ ...prev, ads: prev.ads.map(a => a._id === id ? updatedAd : a) }));
+      } else {
+        const data = await res.json();
+        alert(data.message || 'Lỗi cập nhật trạng thái quảng cáo');
+      }
+    } catch (err) { alert('Lỗi kết nối'); }
   };
 
   const deleteAd = async (id) => {
@@ -736,11 +760,16 @@ const Management = () => {
                    <input required type="text" value={adForm.brandName} onChange={(e) => setAdForm({...adForm, brandName: e.target.value})} placeholder="Brand Identity" className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-white placeholder-slate-700" />
                    <input required type="text" value={adForm.image} onChange={(e) => setAdForm({...adForm, image: e.target.value})} placeholder="Banner Image URL (HTTP/HTTPS)" className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-sm text-blue-400 placeholder-slate-700 underline" title="Paste the URL of the advertisement image here." />
                    <input type="text" value={adForm.url} onChange={(e) => setAdForm({...adForm, url: e.target.value})} placeholder="Target Link (Optional)" className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-sm text-white placeholder-slate-700" />
-                   <select value={adForm.duration} onChange={(e) => setAdForm({...adForm, duration: e.target.value})} className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-white">
-                      <option value="1 Tháng">1 Month Standard</option>
-                      <option value="3 Tháng">3 Months Professional</option>
-                      <option value="6 Tháng">6 Months Exclusive</option>
-                   </select>
+                   <div className="flex gap-4">
+                     <div className="w-1/2">
+                       <label className="text-[10px] text-slate-400 font-bold uppercase tracking-widest pl-2">Start Date / Ký Kết</label>
+                       <input required type="date" value={adForm.startDate} onChange={(e) => setAdForm({...adForm, startDate: e.target.value})} className="mt-1 w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-white focus:ring-2 focus:ring-blue-500" />
+                     </div>
+                     <div className="w-1/2">
+                       <label className="text-[10px] text-slate-400 font-bold uppercase tracking-widest pl-2">End Date / Kết Thúc</label>
+                       <input required type="date" value={adForm.endDate} onChange={(e) => setAdForm({...adForm, endDate: e.target.value})} className="mt-1 w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-white focus:ring-2 focus:ring-red-400" />
+                     </div>
+                   </div>
                    <input required type="number" value={adForm.fee} onChange={(e) => setAdForm({...adForm, fee: Number(e.target.value)})} placeholder="Budget (VND)" className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-white" />
                    <button className="w-full bg-blue-600 py-4 rounded-2xl text-white font-black shadow-lg">INITIALIZE</button>
                 </form>
@@ -770,8 +799,17 @@ const Management = () => {
                         </td>
                         <td className="py-4">
                            <div className="flex flex-col gap-1">
-                             <span className="px-2 py-0.5 bg-blue-50 text-blue-600 rounded-full text-[9px] font-black w-fit uppercase">{ad.duration}</span>
-                             <span className="text-[9px] text-slate-400 font-bold uppercase">Ký ngày: {new Date(ad.startDate || ad.createdAt).toLocaleDateString('vi-VN')}</span>
+                             <div className="flex items-center gap-2 mb-1">
+                               <button 
+                                 onClick={() => handleToggleAd(ad._id, ad.isActive)}
+                                 className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer items-center justify-center rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${ad.isActive ? 'bg-green-500' : 'bg-slate-300'}`}
+                               >
+                                 <span className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${ad.isActive ? 'translate-x-4' : 'translate-x-0'}`}></span>
+                               </button>
+                               <span className={`text-[10px] font-black uppercase ${ad.isActive ? 'text-green-600' : 'text-slate-400'}`}>{ad.isActive ? 'ON' : 'OFF'}</span>
+                             </div>
+                             <span className="text-[9px] text-slate-400 font-bold uppercase">Từ: {ad.startDate ? new Date(ad.startDate).toLocaleDateString('vi-VN') : 'N/A'}</span>
+                             <span className="text-[9px] text-slate-400 font-bold uppercase">Tới: {ad.endDate ? new Date(ad.endDate).toLocaleDateString('vi-VN') : 'N/A'}</span>
                            </div>
                         </td>
                         <td className="py-4 text-right">
