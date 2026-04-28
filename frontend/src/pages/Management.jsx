@@ -200,19 +200,60 @@ const Management = () => {
     } catch (err) { alert(err.message); }
   };
 
+  const isProductUsedInOrders = (productId) => {
+    return data.orders.some((order) =>
+      (order.orderItems || []).some((item) => {
+        const itemProductId = typeof item.product === 'object' ? item.product?._id : item.product;
+        return String(itemProductId) === String(productId);
+      })
+    );
+  };
+
   const deleteProduct = async (id) => {
     setConfirmDelete(null); // close confirm bar
     try {
+      if (isProductUsedInOrders(id)) {
+        const res = await fetch(`${API_BASE_URL}/api/products/${id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${userInfo.token}` },
+          body: JSON.stringify({ countInStock: 0 })
+        });
+        const updatedProduct = await res.json().catch(() => ({}));
+
+        if (!res.ok) {
+          alert('Lỗi cập nhật sản phẩm: ' + (updatedProduct.message || res.status));
+          return;
+        }
+
+        setData(prev => ({
+          ...prev,
+          products: prev.products.map(p => p._id === id ? updatedProduct : p)
+        }));
+        setStockDrafts((prev) => ({ ...prev, [id]: '0' }));
+        alert('Sản phẩm đã có trong đơn hàng nên không thể xóa. Hệ thống đã chuyển sản phẩm sang trạng thái hết hàng.');
+        return;
+      }
+
       const res = await fetch(`${API_BASE_URL}/api/products/${id}`, {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${userInfo.token}` }
       });
+      const resData = await res.json().catch(() => ({}));
       if (res.ok) {
-        // Success: remove from UI immediately
+        if (resData.action === 'marked_out_of_stock' && resData.product) {
+          setData(prev => ({
+            ...prev,
+            products: prev.products.map(p => p._id === id ? resData.product : p)
+          }));
+          setStockDrafts((prev) => ({ ...prev, [id]: '0' }));
+          alert(resData.message);
+          return;
+        }
+
         setData(prev => ({ ...prev, products: prev.products.filter(p => p._id !== id) }));
+        alert(resData.message || 'Đã xóa sản phẩm thành công');
       } else {
-        const errData = await res.json().catch(() => ({}));
-        alert('Lỗi xóa sản phẩm: ' + (errData.message || res.status));
+        alert('Lỗi xóa sản phẩm: ' + (resData.message || res.status));
       }
     } catch (err) { 
       console.error('Delete Error:', err);

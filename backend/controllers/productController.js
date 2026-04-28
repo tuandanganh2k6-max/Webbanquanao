@@ -1,4 +1,5 @@
 const Product = require('../models/Product');
+const Order = require('../models/Order');
 
 // @desc    Fetch all products
 // @route   GET /api/products
@@ -63,14 +64,31 @@ const createProduct = async (req, res, next) => {
 // @access  Private/Staff
 const deleteProduct = async (req, res, next) => {
   try {
-    const product = await Product.findByIdAndDelete(req.params.id);
+    const product = await Product.findById(req.params.id);
 
-    if (product) {
-      res.json({ message: 'Sản phẩm đã được gỡ bỏ thành công' });
-    } else {
+    if (!product) {
       res.status(404);
       throw new Error('Không tìm thấy sản phẩm này trong Cơ sở dữ liệu');
     }
+
+    const productInOrder = await Order.exists({ 'orderItems.product': product._id });
+
+    if (productInOrder) {
+      product.countInStock = 0;
+      const updatedProduct = await product.save();
+
+      return res.json({
+        action: 'marked_out_of_stock',
+        message: 'Sản phẩm đã có trong đơn hàng nên không thể xóa. Hệ thống đã chuyển sản phẩm sang trạng thái hết hàng.',
+        product: updatedProduct,
+      });
+    }
+
+    await product.deleteOne();
+    res.json({
+      action: 'deleted',
+      message: 'Sản phẩm đã được gỡ bỏ thành công',
+    });
   } catch (error) {
     next(error);
   }
