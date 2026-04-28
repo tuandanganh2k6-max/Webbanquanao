@@ -358,10 +358,12 @@ const Management = () => {
         headers: { Authorization: `Bearer ${userInfo.token}` }
       });
       if (!res.ok) throw new Error('Lỗi cập nhật giao hàng');
+      const updatedOrder = await res.json();
       setData(prev => ({
         ...prev,
-        orders: prev.orders.map(o => o._id === id ? { ...o, isDelivered: true, deliveredAt: new Date().toISOString() } : o)
+        orders: prev.orders.map(o => o._id === id ? updatedOrder : o)
       }));
+      if (selectedOrder?._id === id) setSelectedOrder(updatedOrder);
       alert('Đã cập nhật trạng thái đơn hàng thành công!');
     } catch (err) { alert(err.message); }
   };
@@ -378,6 +380,40 @@ const Management = () => {
   };
 
   const isAdmin = userInfo?.role === 'admin';
+
+  const getPaymentMeta = (paymentMethod) => {
+    const method = (paymentMethod || 'COD').toUpperCase();
+
+    if (method === 'CARD') {
+      return {
+        label: 'Thẻ ngân hàng',
+        shortLabel: 'CARD',
+        className: 'bg-blue-50 text-blue-600 border-blue-100',
+      };
+    }
+
+    return {
+      label: 'Thanh toán COD',
+      shortLabel: 'COD',
+      className: 'bg-orange-50 text-orange-600 border-orange-100',
+    };
+  };
+
+  const isPaymentComplete = (order) => {
+    if ((order.paymentMethod || 'COD').toUpperCase() === 'COD') {
+      return Boolean(order.isDelivered && order.isPaid);
+    }
+
+    return Boolean(order.isPaid);
+  };
+
+  const getPaymentStatusLabel = (order) => {
+    if ((order.paymentMethod || 'COD').toUpperCase() === 'COD') {
+      return isPaymentComplete(order) ? 'Đã thu tiền' : 'Chưa thu tiền';
+    }
+
+    return isPaymentComplete(order) ? 'Đã thanh toán' : 'Chưa thanh toán';
+  };
 
   if (loading) {
     return (
@@ -601,7 +637,10 @@ const Management = () => {
             <div className="grid grid-cols-1 gap-4">
               {data.orders
                 .filter(o => !filterDate || new Date(o.createdAt).toLocaleDateString('en-CA') === filterDate)
-                .map(order => (
+                .map(order => {
+                  const payment = getPaymentMeta(order.paymentMethod);
+
+                  return (
                 <div 
                   key={order._id} 
                   onClick={() => setSelectedOrder(order)}
@@ -631,8 +670,11 @@ const Management = () => {
                     <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Financial Value</p>
                     <p className="text-2xl font-black text-slate-900 tracking-tighter">{order.totalPrice.toLocaleString('vi-VN')} <span className="text-sm">đ</span></p>
                     <div className="flex items-center gap-2 mt-2 justify-center lg:justify-end">
-                       <span className={`px-3 py-1 rounded-full text-[9px] font-black uppercase ${order.isPaid ? 'bg-green-50 text-green-600' : 'bg-amber-50 text-amber-600'}`}>
-                         {order.isPaid ? 'PAID' : 'UNPAID'}
+                       <span className={`px-3 py-1 rounded-full text-[9px] font-black uppercase border ${payment.className}`}>
+                         {payment.shortLabel}
+                       </span>
+                       <span className={`px-3 py-1 rounded-full text-[9px] font-black uppercase ${isPaymentComplete(order) ? 'bg-green-50 text-green-600' : 'bg-amber-50 text-amber-600'}`}>
+                         {getPaymentStatusLabel(order)}
                        </span>
                     </div>
                   </div>
@@ -666,7 +708,8 @@ const Management = () => {
                     </select>
                   </div>
                 </div>
-              ))}
+                  );
+                })}
               {(data.orders.filter(o => !filterDate || new Date(o.createdAt).toLocaleDateString('en-CA') === filterDate).length === 0) && (
                 <div className="py-20 text-center border-2 border-dashed border-slate-200 rounded-[3rem] italic text-slate-400 font-bold uppercase tracking-widest text-xs">
                   No orders found for this date.
@@ -976,10 +1019,13 @@ const Management = () => {
               <div className="text-left md:text-right">
                 <p className="text-[10px] font-black text-slate-300 uppercase tracking-widest mb-1">Status Report</p>
                 <div className="flex gap-2 justify-start md:justify-end">
+                   <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border ${getPaymentMeta(selectedOrder.paymentMethod).className}`}>
+                     {getPaymentMeta(selectedOrder.paymentMethod).shortLabel}
+                   </span>
                    <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest ${
-                     selectedOrder.isPaid ? 'bg-green-100 text-green-600' : 'bg-amber-100 text-amber-600'
+                     isPaymentComplete(selectedOrder) ? 'bg-green-100 text-green-600' : 'bg-amber-100 text-amber-600'
                    }`}>
-                     {selectedOrder.isPaid ? 'PAID' : 'PENDING'}
+                     {getPaymentStatusLabel(selectedOrder)}
                    </span>
                    <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest ${
                      selectedOrder.isDelivered ? 'bg-blue-100 text-blue-600' : 'bg-slate-100 text-slate-400'
@@ -1028,6 +1074,14 @@ const Management = () => {
                    </div>
                    <h4 className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-4">Final Valuation</h4>
                    <p className="text-4xl font-black tracking-tighter">{selectedOrder.totalPrice.toLocaleString('vi-VN')} <span className="text-sm">VND</span></p>
+                   <div className="mt-5 flex flex-wrap gap-2">
+                     <span className={`px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border ${getPaymentMeta(selectedOrder.paymentMethod).className}`}>
+                       {getPaymentMeta(selectedOrder.paymentMethod).label}
+                     </span>
+                     <span className={`px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest ${isPaymentComplete(selectedOrder) ? 'bg-green-500/10 text-green-300' : 'bg-amber-500/10 text-amber-300'}`}>
+                       {getPaymentStatusLabel(selectedOrder)}
+                     </span>
+                   </div>
                    <div className="mt-8 pt-6 border-t border-white/10">
                       <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-4">Operation Status</p>
                       {!selectedOrder.isDelivered ? (

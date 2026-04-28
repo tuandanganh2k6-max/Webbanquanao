@@ -16,15 +16,18 @@ const addOrderItems = async (req, res) => {
     res.status(400).json({ message: 'No order items' });
     return;
   } else {
+    const normalizedPaymentMethod = paymentMethod || 'COD';
+    const isCardPayment = normalizedPaymentMethod === 'CARD';
+
     const order = new Order({
       orderItems,
       user: req.user._id,
       shippingAddress,
-      paymentMethod,
+      paymentMethod: normalizedPaymentMethod,
       itemsPrice,
       totalPrice,
-      isPaid: true, // Simulation
-      paidAt: Date.now(),
+      isPaid: isCardPayment,
+      paidAt: isCardPayment ? Date.now() : undefined,
     });
 
     const createdOrder = await order.save();
@@ -57,7 +60,7 @@ const getMyOrders = async (req, res) => {
 // @route   GET /api/orders
 // @access  Private/Staff
 const getOrders = async (req, res) => {
-  const orders = await Order.find({}).populate('user', 'id name').sort({ createdAt: -1 });
+  const orders = await Order.find({}).populate('user', 'id name email').sort({ createdAt: -1 });
   res.json(orders);
 };
 
@@ -70,6 +73,10 @@ const updateOrderToDelivered = async (req, res) => {
   if (order) {
     order.isDelivered = true;
     order.deliveredAt = Date.now();
+    if (order.paymentMethod === 'COD') {
+      order.isPaid = true;
+      order.paidAt = Date.now();
+    }
 
     const updatedOrder = await order.save();
     res.json(updatedOrder);
@@ -154,6 +161,10 @@ const updateOrderStatus = async (req, res, next) => {
       if (req.body.status === 'Thành công') {
         order.isDelivered = true;
         order.deliveredAt = Date.now();
+        if (order.paymentMethod === 'COD') {
+          order.isPaid = true;
+          order.paidAt = Date.now();
+        }
       }
       const updatedOrder = await order.save();
       res.json(updatedOrder);
