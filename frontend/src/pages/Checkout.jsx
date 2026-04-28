@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import API_BASE_URL from '../apiConfig';
 import { useCart } from '../context/CartContext';
@@ -18,9 +18,199 @@ const Checkout = () => {
   const [success, setSuccess] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [savedAddresses, setSavedAddresses] = useState([]);
+  const [selectedAddressId, setSelectedAddressId] = useState('');
+  const [addressLabel, setAddressLabel] = useState('');
+  const [addressIsDefault, setAddressIsDefault] = useState(false);
+  const [editingAddressId, setEditingAddressId] = useState('');
+  const [addressLoading, setAddressLoading] = useState(false);
+  const [addressMessage, setAddressMessage] = useState('');
   const userInfo = JSON.parse(localStorage.getItem('userInfo'));
 
   const itemsPrice = cartItems.reduce((acc, item) => acc + item.price * item.qty, 0);
+  const addressStorageKey = userInfo?._id ? `savedAddresses:${userInfo._id}` : '';
+
+  const readJsonResponse = async (res) => {
+    const contentType = res.headers.get('content-type') || '';
+
+    if (!contentType.includes('application/json')) {
+      const error = new Error('ADDRESS_API_UNAVAILABLE');
+      error.code = 'ADDRESS_API_UNAVAILABLE';
+      error.status = res.status;
+      throw error;
+    }
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      const error = new Error(data.message || 'ADDRESS_API_ERROR');
+      error.status = res.status;
+      throw error;
+    }
+
+    return data;
+  };
+
+  const canUseLocalAddressFallback = (err) => {
+    return err.code === 'ADDRESS_API_UNAVAILABLE' || err.status === 404 || err.message === 'ADDRESS_API_ERROR';
+  };
+
+  const normalizeSavedAddresses = (addresses) => {
+    if (!Array.isArray(addresses)) return [];
+
+    const cleanedAddresses = addresses
+      .filter((item) => item?.address && item?.city && item?.phone)
+      .map((item) => ({
+        _id: item._id || `local-${Date.now()}-${Math.random().toString(16).slice(2)}`,
+        label: item.label || 'Địa chỉ giao hàng',
+        address: item.address,
+        city: item.city,
+        phone: item.phone,
+        isDefault: Boolean(item.isDefault),
+      }));
+
+    if (cleanedAddresses.length > 0 && !cleanedAddresses.some((item) => item.isDefault)) {
+      cleanedAddresses[0].isDefault = true;
+    }
+
+    return cleanedAddresses;
+  };
+
+  const getLocalSavedAddresses = () => {
+    if (!addressStorageKey) return [];
+
+    try {
+      return normalizeSavedAddresses(JSON.parse(localStorage.getItem(addressStorageKey)) || []);
+    } catch (err) {
+      return [];
+    }
+  };
+
+  const setLocalSavedAddresses = (addresses) => {
+    if (!addressStorageKey) return;
+    localStorage.setItem(addressStorageKey, JSON.stringify(normalizeSavedAddresses(addresses)));
+  };
+
+  const setAddressList = (addresses) => {
+    const nextAddresses = normalizeSavedAddresses(addresses);
+    setSavedAddresses(nextAddresses);
+    setLocalSavedAddresses(nextAddresses);
+    return nextAddresses;
+  };
+
+  const saveAddressLocally = () => {
+    const payload = getAddressPayload();
+    let nextAddresses = getLocalSavedAddresses();
+
+    if (editingAddressId) {
+      nextAddresses = nextAddresses.map((item) => (
+        item._id === editingAddressId ? { ...item, ...payload } : item
+      ));
+    } else {
+      const newAddress = {
+        _id: `local-${Date.now()}-${Math.random().toString(16).slice(2)}`,
+        ...payload,
+      };
+      nextAddresses = [...nextAddresses, newAddress];
+    }
+
+    if (payload.isDefault || nextAddresses.length === 1) {
+      const activeId = editingAddressId || nextAddresses[nextAddresses.length - 1]._id;
+      nextAddresses = nextAddresses.map((item) => ({
+        ...item,
+        isDefault: item._id === activeId,
+      }));
+    }
+
+    const normalizedAddresses = setAddressList(nextAddresses);
+    return editingAddressId
+      ? normalizedAddresses.find((item) => item._id === editingAddressId)
+      : normalizedAddresses[normalizedAddresses.length - 1];
+  };
+
+  const deleteAddressLocally = (addressId) => {
+    const targetAddress = getLocalSavedAddresses().find((item) => item._id === addressId);
+    const nextAddresses = getLocalSavedAddresses().filter((item) => item._id !== addressId);
+
+    if (targetAddress?.isDefault && nextAddresses.length > 0) {
+      nextAddresses[0].isDefault = true;
+    }
+
+    return setAddressList(nextAddresses);
+  };
+
+  const getAddressPayload = () => ({
+    label: addressLabel,
+    address: shipping.address,
+    city: shipping.city,
+    phone: shipping.phone,
+    isDefault: addressIsDefault,
+  });
+
+  const applySavedAddress = (savedAddress) => {
+    setSelectedAddressId(savedAddress._id);
+    setShipping({
+      address: savedAddress.address,
+      city: savedAddress.city,
+      phone: savedAddress.phone,
+    });
+  };
+
+  useEffect(() => {
+    if (!userInfo?.token) return;
+
+    const fetchSavedAddresses = async () => {
+      try {
+        setAddressLoading(true);
+        const res = await fetch(`${API_BASE_URL}/api/users/addresses`, {
+          headers: { Authorization: `Bearer ${userInfo.token}` },
+        });
+        const data = await readJsonResponse(res);
+
+        const addresses = setAddressList(data);
+        setAddressIsDefault(addresses.length === 0);
+
+        const defaultAddress = addresses.find((item) => item.isDefault) || addresses[0];
+        if (defaultAddress) {
+          setSelectedAddressId(defaultAddress._id);
+          setShipping((prev) => {
+            if (prev.address || prev.city || prev.phone) return prev;
+
+            return {
+              address: defaultAddress.address,
+              city: defaultAddress.city,
+              phone: defaultAddress.phone,
+            };
+          });
+        }
+      } catch (err) {
+        const localAddresses = setAddressList(getLocalSavedAddresses());
+        setAddressIsDefault(localAddresses.length === 0);
+
+        const defaultAddress = localAddresses.find((item) => item.isDefault) || localAddresses[0];
+        if (defaultAddress) {
+          setSelectedAddressId(defaultAddress._id);
+          setShipping((prev) => {
+            if (prev.address || prev.city || prev.phone) return prev;
+
+            return {
+              address: defaultAddress.address,
+              city: defaultAddress.city,
+              phone: defaultAddress.phone,
+            };
+          });
+        }
+
+        if (!canUseLocalAddressFallback(err)) {
+          setAddressMessage(err.message || 'Không thể tải địa chỉ đã lưu');
+        }
+      } finally {
+        setAddressLoading(false);
+      }
+    };
+
+    fetchSavedAddresses();
+  }, [userInfo?.token]);
 
   const formatCardNumber = (value) => {
     const digits = value.replace(/\D/g, '').slice(0, 16);
@@ -34,6 +224,10 @@ const Checkout = () => {
 
   const handleCardFieldChange = (field, value) => {
     let nextValue = value;
+
+    if (field === 'holderName') {
+      nextValue = value.replace(/[0-9]/g, '').toUpperCase();
+    }
 
     if (field === 'cardNumber') {
       nextValue = formatCardNumber(value);
@@ -66,6 +260,145 @@ const Checkout = () => {
     return year < currentYear || (year === currentYear && month < currentMonth);
   };
 
+  const updateShippingField = (field, value) => {
+    const nextValue = field === 'phone'
+      ? value.replace(/\D/g, '').slice(0, 11)
+      : value;
+
+    setShipping((prev) => ({ ...prev, [field]: nextValue }));
+    if (!editingAddressId) {
+      setSelectedAddressId('');
+    }
+  };
+
+  const resetAddressEditor = () => {
+    setEditingAddressId('');
+    setAddressLabel('');
+    setAddressIsDefault(savedAddresses.length === 0);
+    setAddressMessage('');
+  };
+
+  const editSavedAddress = (savedAddress) => {
+    setEditingAddressId(savedAddress._id);
+    setSelectedAddressId(savedAddress._id);
+    setAddressLabel(savedAddress.label || '');
+    setAddressIsDefault(Boolean(savedAddress.isDefault));
+    setShipping({
+      address: savedAddress.address,
+      city: savedAddress.city,
+      phone: savedAddress.phone,
+    });
+    setAddressMessage('');
+  };
+
+  const saveAddress = async () => {
+    if (!shipping.address.trim() || !shipping.city.trim() || !shipping.phone.trim()) {
+      setAddressMessage('Vui lòng nhập đầy đủ địa chỉ, thành phố và số điện thoại trước khi lưu.');
+      return;
+    }
+
+    setAddressLoading(true);
+    setAddressMessage('');
+
+    try {
+      const res = await fetch(
+        editingAddressId
+          ? `${API_BASE_URL}/api/users/addresses/${editingAddressId}`
+          : `${API_BASE_URL}/api/users/addresses`,
+        {
+          method: editingAddressId ? 'PUT' : 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${userInfo.token}`,
+          },
+          body: JSON.stringify(getAddressPayload()),
+        }
+      );
+      const data = await readJsonResponse(res);
+      const addresses = setAddressList(data);
+      const activeAddress = editingAddressId
+        ? addresses.find((item) => item._id === editingAddressId)
+        : addresses[addresses.length - 1];
+
+      if (activeAddress) {
+        setSelectedAddressId(activeAddress._id);
+      }
+      setAddressMessage(editingAddressId ? 'Đã cập nhật địa chỉ.' : 'Đã lưu địa chỉ mới.');
+      setEditingAddressId('');
+      setAddressLabel('');
+      setAddressIsDefault(addresses.length === 0);
+    } catch (err) {
+      if (!canUseLocalAddressFallback(err)) {
+        setAddressMessage(err.message || 'Không thể lưu địa chỉ');
+        return;
+      }
+
+      const activeAddress = saveAddressLocally();
+      if (activeAddress) {
+        setSelectedAddressId(activeAddress._id);
+      }
+      setAddressMessage(editingAddressId ? 'Đã cập nhật địa chỉ.' : 'Đã lưu địa chỉ mới.');
+      setEditingAddressId('');
+      setAddressLabel('');
+      setAddressIsDefault(savedAddresses.length === 0);
+    } finally {
+      setAddressLoading(false);
+    }
+  };
+
+  const deleteSavedAddress = async (addressId) => {
+    if (!window.confirm('Bạn có chắc chắn muốn xóa địa chỉ này?')) return;
+
+    setAddressLoading(true);
+    setAddressMessage('');
+
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/users/addresses/${addressId}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${userInfo.token}` },
+      });
+      const data = await readJsonResponse(res);
+      const addresses = setAddressList(data);
+      setAddressMessage('Đã xóa địa chỉ.');
+
+      if (editingAddressId === addressId) {
+        resetAddressEditor();
+      }
+
+      if (selectedAddressId === addressId) {
+        const nextAddress = addresses.find((item) => item.isDefault) || addresses[0];
+        if (nextAddress) {
+          applySavedAddress(nextAddress);
+        } else {
+          setSelectedAddressId('');
+        }
+      }
+    } catch (err) {
+      if (!canUseLocalAddressFallback(err)) {
+        setAddressMessage(err.message || 'Không thể xóa địa chỉ');
+        return;
+      }
+
+      const addresses = deleteAddressLocally(addressId);
+      setAddressMessage('Đã xóa địa chỉ.');
+
+      if (editingAddressId === addressId) {
+        resetAddressEditor();
+      }
+
+      if (selectedAddressId === addressId) {
+        const nextAddress = addresses.find((item) => item.isDefault) || addresses[0];
+        if (nextAddress) {
+          applySavedAddress(nextAddress);
+        } else {
+          setSelectedAddressId('');
+        }
+      }
+    } finally {
+      setAddressLoading(false);
+    }
+  };
+
   if (!userInfo) {
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center py-12 px-4">
@@ -91,6 +424,13 @@ const Checkout = () => {
     e.preventDefault();
     setLoading(true);
     setError('');
+
+    const cleanPhone = shipping.phone.replace(/\D/g, '');
+    if (cleanPhone.length < 10 || cleanPhone.length > 11) {
+      setError('Vui lòng nhập số điện thoại hợp lệ từ 10 đến 11 chữ số.');
+      setLoading(false);
+      return;
+    }
 
     if (paymentMethod === 'CARD') {
       const cleanCardNumber = cardInfo.cardNumber.replace(/\s/g, '');
@@ -185,13 +525,92 @@ const Checkout = () => {
           <div className="w-full lg:w-2/3 bg-white p-8 rounded-3xl shadow-sm border border-slate-100">
             <h2 className="text-xl font-bold text-slate-800 mb-6 border-b pb-4">Thông Tin Giao Hàng</h2>
             <form onSubmit={submitHandler} className="space-y-6">
+              <div className="rounded-2xl border border-slate-100 bg-slate-50 p-5">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+                  <div>
+                    <h3 className="text-sm font-black text-slate-800 uppercase tracking-wide">Địa chỉ đã lưu</h3>
+                    <p className="text-xs text-slate-500 mt-1">Chọn nhanh, sửa hoặc xóa địa chỉ giao hàng của bạn.</p>
+                  </div>
+                  {addressLoading && (
+                    <span className="text-xs font-bold text-blue-600">Đang xử lý...</span>
+                  )}
+                </div>
+
+                {savedAddresses.length > 0 ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    {savedAddresses.map((savedAddress) => (
+                      <div
+                        key={savedAddress._id}
+                        className={`p-4 rounded-2xl border bg-white transition-all ${
+                          selectedAddressId === savedAddress._id
+                            ? 'border-blue-300 ring-2 ring-blue-100'
+                            : 'border-slate-100 hover:border-slate-200'
+                        }`}
+                      >
+                        <button
+                          type="button"
+                          onClick={() => applySavedAddress(savedAddress)}
+                          className="w-full text-left"
+                        >
+                          <div className="flex items-center gap-2 mb-2">
+                            <span className="font-black text-slate-800 text-sm">{savedAddress.label || 'Địa chỉ giao hàng'}</span>
+                            {savedAddress.isDefault && (
+                              <span className="px-2 py-0.5 rounded-full bg-blue-50 text-blue-600 text-[9px] font-black uppercase">Mặc định</span>
+                            )}
+                          </div>
+                          <p className="text-xs font-bold text-slate-600 leading-relaxed">{savedAddress.address}, {savedAddress.city}</p>
+                          <p className="text-xs font-bold text-blue-600 mt-2">{savedAddress.phone}</p>
+                        </button>
+                        <div className="flex gap-2 mt-3 pt-3 border-t border-slate-50">
+                          <button
+                            type="button"
+                            onClick={() => editSavedAddress(savedAddress)}
+                            className="text-[10px] font-black uppercase text-slate-500 hover:text-blue-600"
+                          >
+                            Sửa
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => deleteSavedAddress(savedAddress._id)}
+                            className="text-[10px] font-black uppercase text-slate-400 hover:text-red-500"
+                          >
+                            Xóa
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="rounded-2xl border border-dashed border-slate-200 bg-white p-4 text-sm text-slate-400 font-bold text-center">
+                    Chưa có địa chỉ nào được lưu.
+                  </div>
+                )}
+
+                {addressMessage && (
+                  <p className="mt-4 text-xs font-bold text-slate-500">{addressMessage}</p>
+                )}
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-slate-700 mb-1">Tên gợi nhớ</label>
+                <input
+                  type="text"
+                  value={addressLabel}
+                  onChange={(e) => setAddressLabel(e.target.value)}
+                  autoComplete="off"
+                  className="w-full px-4 py-3 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-indigo-500"
+                  placeholder="Nhà riêng / Công ty..."
+                />
+              </div>
+
               <div>
                 <label className="block text-sm font-semibold text-slate-700 mb-1">Địa chỉ Giao Hàng</label>
                 <input
                   required
                   type="text"
                   value={shipping.address}
-                  onChange={(e) => setShipping({ ...shipping, address: e.target.value })}
+                  onChange={(e) => updateShippingField('address', e.target.value)}
+                  autoComplete="street-address"
                   className="w-full px-4 py-3 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-indigo-500"
                   placeholder="Số nhà, Tên Đường..."
                 />
@@ -204,7 +623,8 @@ const Checkout = () => {
                     required
                     type="text"
                     value={shipping.city}
-                    onChange={(e) => setShipping({ ...shipping, city: e.target.value })}
+                    onChange={(e) => updateShippingField('city', e.target.value)}
+                    autoComplete="address-level2"
                     className="w-full px-4 py-3 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-indigo-500"
                     placeholder="Hà Nội / HCM..."
                   />
@@ -214,11 +634,47 @@ const Checkout = () => {
                   <input
                     required
                     type="tel"
+                    inputMode="numeric"
+                    pattern="[0-9]{10,11}"
+                    minLength="10"
+                    maxLength="11"
                     value={shipping.phone}
-                    onChange={(e) => setShipping({ ...shipping, phone: e.target.value })}
+                    onChange={(e) => updateShippingField('phone', e.target.value)}
+                    autoComplete="tel"
                     className="w-full px-4 py-3 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-indigo-500"
                     placeholder="09xxxxxxxx"
                   />
+                </div>
+              </div>
+
+              <div className="rounded-2xl border border-slate-100 bg-white p-4 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <label className="flex items-center gap-3 text-sm font-bold text-slate-600">
+                  <input
+                    type="checkbox"
+                    checked={addressIsDefault}
+                    onChange={(e) => setAddressIsDefault(e.target.checked)}
+                    className="w-4 h-4 text-indigo-600 rounded"
+                  />
+                  Đặt làm địa chỉ mặc định
+                </label>
+                <div className="flex flex-wrap gap-2">
+                  {editingAddressId && (
+                    <button
+                      type="button"
+                      onClick={resetAddressEditor}
+                      className="px-4 py-2 rounded-xl bg-slate-100 text-slate-500 text-xs font-black uppercase hover:bg-slate-200 transition-all"
+                    >
+                      Hủy sửa
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    onClick={saveAddress}
+                    disabled={addressLoading}
+                    className="px-5 py-2 rounded-xl bg-indigo-600 text-white text-xs font-black uppercase shadow-md hover:bg-indigo-700 disabled:opacity-60 transition-all"
+                  >
+                    {editingAddressId ? 'Cập nhật địa chỉ' : 'Lưu địa chỉ này'}
+                  </button>
                 </div>
               </div>
 
@@ -262,6 +718,7 @@ const Checkout = () => {
                       type="text"
                       value={cardInfo.holderName}
                       onChange={(e) => handleCardFieldChange('holderName', e.target.value)}
+                      autoComplete="cc-name"
                       className="w-full px-4 py-3 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-blue-500"
                       placeholder="NGUYEN VAN A"
                     />
@@ -271,10 +728,13 @@ const Checkout = () => {
                     <label className="block text-sm font-semibold text-slate-700 mb-1">Số thẻ</label>
                     <input
                       required
-                      type="text"
+                      type="tel"
                       inputMode="numeric"
+                      pattern="[0-9 ]{19}"
+                      maxLength="19"
                       value={cardInfo.cardNumber}
                       onChange={(e) => handleCardFieldChange('cardNumber', e.target.value)}
+                      autoComplete="cc-number"
                       className="w-full px-4 py-3 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-blue-500"
                       placeholder="1234 5678 9012 3456"
                     />
@@ -286,8 +746,11 @@ const Checkout = () => {
                       required
                       type="text"
                       inputMode="numeric"
+                      pattern="(0[1-9]|1[0-2])/[0-9]{2}"
+                      maxLength="5"
                       value={cardInfo.expiry}
                       onChange={(e) => handleCardFieldChange('expiry', e.target.value)}
+                      autoComplete="cc-exp"
                       className="w-full px-4 py-3 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-blue-500"
                       placeholder="MM/YY"
                     />
@@ -299,8 +762,12 @@ const Checkout = () => {
                       required
                       type="password"
                       inputMode="numeric"
+                      pattern="[0-9]{3,4}"
+                      minLength="3"
+                      maxLength="4"
                       value={cardInfo.cvv}
                       onChange={(e) => handleCardFieldChange('cvv', e.target.value)}
+                      autoComplete="cc-csc"
                       className="w-full px-4 py-3 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-blue-500"
                       placeholder="123"
                     />

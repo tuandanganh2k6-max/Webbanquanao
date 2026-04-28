@@ -6,6 +6,18 @@ const generateToken = (id) => {
   return jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: '30d' });
 };
 
+const normalizeAddressInput = ({ label, address, city, phone, isDefault }) => ({
+  label: label?.trim() || 'Địa chỉ giao hàng',
+  address: address?.trim(),
+  city: city?.trim(),
+  phone: phone?.trim(),
+  isDefault: Boolean(isDefault),
+});
+
+const validateAddressInput = ({ address, city, phone }) => {
+  return Boolean(address && city && phone);
+};
+
 // @desc    Auth user & get token
 // @route   POST /api/users/login
 // @access  Public
@@ -138,4 +150,132 @@ const createManager = async (req, res, next) => {
   }
 };
 
-module.exports = { authUser, registerUser, getUsers, deleteUser, createManager };
+// @desc    Get current user's saved addresses
+// @route   GET /api/users/addresses
+// @access  Private
+const getMyAddresses = async (req, res, next) => {
+  try {
+    const user = await User.findById(req.user._id).select('addresses');
+    res.json(user?.addresses || []);
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Add a saved address
+// @route   POST /api/users/addresses
+// @access  Private
+const addMyAddress = async (req, res, next) => {
+  try {
+    const user = await User.findById(req.user._id).select('-password');
+    if (!user) {
+      res.status(404);
+      throw new Error('Không tìm thấy người dùng');
+    }
+
+    const nextAddress = normalizeAddressInput(req.body);
+    if (!validateAddressInput(nextAddress)) {
+      res.status(400);
+      throw new Error('Vui lòng nhập đầy đủ địa chỉ, thành phố và số điện thoại');
+    }
+
+    if (user.addresses.length === 0 || nextAddress.isDefault) {
+      user.addresses.forEach((savedAddress) => {
+        savedAddress.isDefault = false;
+      });
+      nextAddress.isDefault = true;
+    }
+
+    user.addresses.push(nextAddress);
+    await user.save();
+
+    res.status(201).json(user.addresses);
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Update a saved address
+// @route   PUT /api/users/addresses/:addressId
+// @access  Private
+const updateMyAddress = async (req, res, next) => {
+  try {
+    const user = await User.findById(req.user._id).select('-password');
+    if (!user) {
+      res.status(404);
+      throw new Error('Không tìm thấy người dùng');
+    }
+
+    const savedAddress = user.addresses.id(req.params.addressId);
+    if (!savedAddress) {
+      res.status(404);
+      throw new Error('Không tìm thấy địa chỉ');
+    }
+
+    const nextAddress = normalizeAddressInput({ ...savedAddress.toObject(), ...req.body });
+    if (!validateAddressInput(nextAddress)) {
+      res.status(400);
+      throw new Error('Vui lòng nhập đầy đủ địa chỉ, thành phố và số điện thoại');
+    }
+
+    if (nextAddress.isDefault) {
+      user.addresses.forEach((item) => {
+        item.isDefault = false;
+      });
+    }
+
+    savedAddress.label = nextAddress.label;
+    savedAddress.address = nextAddress.address;
+    savedAddress.city = nextAddress.city;
+    savedAddress.phone = nextAddress.phone;
+    savedAddress.isDefault = nextAddress.isDefault;
+
+    await user.save();
+    res.json(user.addresses);
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Delete a saved address
+// @route   DELETE /api/users/addresses/:addressId
+// @access  Private
+const deleteMyAddress = async (req, res, next) => {
+  try {
+    const user = await User.findById(req.user._id).select('-password');
+    if (!user) {
+      res.status(404);
+      throw new Error('Không tìm thấy người dùng');
+    }
+
+    const savedAddress = user.addresses.id(req.params.addressId);
+    if (!savedAddress) {
+      res.status(404);
+      throw new Error('Không tìm thấy địa chỉ');
+    }
+
+    const wasDefault = savedAddress.isDefault;
+    user.addresses.pull(savedAddress._id);
+
+    if (wasDefault && user.addresses.length > 0) {
+      user.addresses[0].isDefault = true;
+    }
+
+    await user.save();
+    res.json(user.addresses);
+  } catch (error) {
+    next(error);
+  }
+};
+
+module.exports = {
+  authUser,
+  registerUser,
+  getUsers,
+  deleteUser,
+  createManager,
+  getMyAddresses,
+  addMyAddress,
+  updateMyAddress,
+  deleteMyAddress,
+};
