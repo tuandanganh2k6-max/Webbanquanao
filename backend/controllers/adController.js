@@ -14,12 +14,22 @@ const createAd = async (req, res, next) => {
     const { brandName, startDate, endDate, fee, image, url } = req.body;
     
     // Validate end date (Business Rule BR-01 for Ad Contract)
+    const start = new Date(startDate);
     const end = new Date(endDate);
     const today = new Date();
     today.setHours(0, 0, 0, 0); // Normalize today to midnight for fair comparison
+    start.setHours(0, 0, 0, 0);
     
     if (end <= today) {
       return res.status(400).json({ message: 'Lỗi: Ngày kết thúc hợp đồng không được nhỏ hơn hoặc bằng ngày hôm nay' });
+    }
+
+    if (end <= start) {
+      return res.status(400).json({ message: 'Lỗi: Ngày kết thúc hợp đồng buộc phải lớn hơn ngày bắt đầu hợp đồng' });
+    }
+
+    if (image && image.toLowerCase().includes('.png')) {
+      return res.status(400).json({ message: 'Lỗi: Hệ thống từ chối ảnh định dạng PNG. Vui lòng sử dụng Webp hoặc JPG.' });
     }
 
     const ad = new Ad({
@@ -56,7 +66,19 @@ const deleteAd = async (req, res) => {
 const updateAdStatus = async (req, res) => {
   const ad = await Ad.findById(req.params.id);
   if (ad) {
-    ad.isActive = req.body.isActive !== undefined ? req.body.isActive : !ad.isActive;
+    const isActivating = req.body.isActive !== undefined ? req.body.isActive : !ad.isActive;
+    
+    // Nếu cố bật ON, kiểm tra xem đã quá hạn chưa?
+    if (isActivating) {
+      const end = new Date(ad.endDate);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      if (end <= today) {
+        return res.status(400).json({ message: 'Lỗi chặn: Không thể Bật (ON) hiển thị do hợp đồng này đã khóa vì QUÁ HẠN ngày kết thúc!' });
+      }
+    }
+
+    ad.isActive = isActivating;
     const updatedAd = await ad.save();
     res.json(updatedAd);
   } else {

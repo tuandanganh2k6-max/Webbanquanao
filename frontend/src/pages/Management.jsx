@@ -102,11 +102,22 @@ const Management = () => {
   const handleAdSubmit = async (e) => {
     e.preventDefault();
     try {
+      const start = new Date(adForm.startDate);
       const end = new Date(adForm.endDate);
       const today = new Date();
       today.setHours(0, 0, 0, 0);
+      start.setHours(0, 0, 0, 0);
+
       if (end <= today) {
         throw new Error('Lỗi: Ngày kết thúc hợp đồng phải nằm ở Tương lai (> Hôm nay)!');
+      }
+
+      if (end <= start) {
+        throw new Error('Sai Logic: Ngày kết thúc hợp đồng vô lý vì đang <= Ngày bắt đầu!');
+      }
+
+      if (adForm.image.toLowerCase().includes('.png')) {
+        throw new Error('Sai định dạng ảnh: Hệ thống không cho phép lưu ảnh đuôi PNG!');
       }
 
       const res = await fetch(`${API_BASE_URL}/api/ads`, {
