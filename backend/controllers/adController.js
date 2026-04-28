@@ -28,6 +28,13 @@ const createAd = async (req, res, next) => {
       return res.status(400).json({ message: 'Lỗi: Ngày kết thúc hợp đồng buộc phải lớn hơn ngày bắt đầu hợp đồng' });
     }
 
+    // Chặn định dạng không phải ảnh
+    const imageUrlCreate = image.toLowerCase().split('?')[0];
+    const blockedExts = ['.pdf', '.doc', '.docx', '.xls', '.xlsx', '.mp4', '.mp3', '.zip', '.rar', '.exe'];
+    if (blockedExts.some(ext => imageUrlCreate.endsWith(ext))) {
+      return res.status(400).json({ message: 'Lỗi: Banner Image chỉ được phép là ảnh (jpg, png, webp...). Không chấp nhận PDF hay file tài liệu!' });
+    }
+
     const ad = new Ad({
       brandName,
       startDate,
@@ -107,6 +114,13 @@ const updateAd = async (req, res, next) => {
 
     if (end <= start) {
       return res.status(400).json({ message: 'Lỗi: Ngày kết thúc hợp đồng buộc phải lớn hơn ngày bắt đầu hợp đồng' });
+    }
+
+    // Chặn định dạng không phải ảnh
+    const imageUrlUpdate = image.toLowerCase().split('?')[0];
+    const blockedExtsUpdate = ['.pdf', '.doc', '.docx', '.xls', '.xlsx', '.mp4', '.mp3', '.zip', '.rar', '.exe'];
+    if (blockedExtsUpdate.some(ext => imageUrlUpdate.endsWith(ext))) {
+      return res.status(400).json({ message: 'Lỗi: Banner Image chỉ được phép là ảnh (jpg, png, webp...). Không chấp nhận PDF hay file tài liệu!' });
     }
 
     const ad = await Ad.findById(req.params.id);

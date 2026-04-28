@@ -106,6 +106,14 @@ const Management = () => {
       // Bắt lỗi trường trống (đặc biệt khi đang ở chế độ Sửa Đổi)
       if (!adForm.brandName.trim()) throw new Error('Lỗi: Tên thương hiệu không được để trống!');
       if (!adForm.image.trim()) throw new Error('Lỗi: Link ảnh Banner không được để trống!');
+      
+      // Chặn định dạng không phải ảnh
+      const imageUrl = adForm.image.trim().toLowerCase().split('?')[0];
+      const blockedExts = ['.pdf', '.doc', '.docx', '.xls', '.xlsx', '.mp4', '.mp3', '.zip', '.rar', '.exe'];
+      if (blockedExts.some(ext => imageUrl.endsWith(ext))) {
+        throw new Error('Lỗi: Banner Image chỉ được phép là ảnh (jpg, png, webp, gif...). Không chấp nhận PDF hay file tài liệu!');
+      }
+
       if (!adForm.url.trim()) throw new Error('Lỗi: Link quảng cáo (URL đích) không được để trống!');
       if (!adForm.startDate) throw new Error('Lỗi: Vui lòng chọn Ngày bắt đầu hợp đồng!');
       if (!adForm.endDate) throw new Error('Lỗi: Vui lòng chọn Ngày kết thúc hợp đồng!');
