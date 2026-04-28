@@ -106,6 +106,7 @@ const Management = () => {
       // Bắt lỗi trường trống (đặc biệt khi đang ở chế độ Sửa Đổi)
       if (!adForm.brandName.trim()) throw new Error('Lỗi: Tên thương hiệu không được để trống!');
       if (!adForm.image.trim()) throw new Error('Lỗi: Link ảnh Banner không được để trống!');
+      if (!adForm.url.trim()) throw new Error('Lỗi: Link quảng cáo (URL đích) không được để trống!');
       if (!adForm.startDate) throw new Error('Lỗi: Vui lòng chọn Ngày bắt đầu hợp đồng!');
       if (!adForm.endDate) throw new Error('Lỗi: Vui lòng chọn Ngày kết thúc hợp đồng!');
       if (!adForm.fee && adForm.fee !== 0) throw new Error('Lỗi: Phí hợp đồng không được để trống!');
@@ -828,7 +829,7 @@ const Management = () => {
                    <h3 className="text-white font-black uppercase italic tracking-widest text-sm mb-4">New Contract</h3>
                    <input required type="text" value={adForm.brandName} onChange={(e) => setAdForm({...adForm, brandName: e.target.value})} placeholder="Brand Identity" className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-white placeholder-slate-700" />
                    <input required type="text" value={adForm.image} onChange={(e) => setAdForm({...adForm, image: e.target.value})} placeholder="Banner Image URL (HTTP/HTTPS)" className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-sm text-blue-400 placeholder-slate-700 underline" title="Paste the URL of the advertisement image here." />
-                   <input type="text" value={adForm.url} onChange={(e) => setAdForm({...adForm, url: e.target.value})} placeholder="Target Link (Optional)" className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-sm text-white placeholder-slate-700" />
+                   <input required type="text" value={adForm.url} onChange={(e) => setAdForm({...adForm, url: e.target.value})} placeholder="Target Link (Bắt buộc)" className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-sm text-white placeholder-slate-700" />
                    <div className="flex gap-4">
                      <div className="w-1/2">
                        <label className="text-[10px] text-slate-400 font-bold uppercase tracking-widest pl-2">Start Date / Ký Kết</label>

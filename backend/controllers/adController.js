@@ -91,8 +91,8 @@ const updateAd = async (req, res, next) => {
     const { brandName, startDate, endDate, fee, image, url, priority } = req.body;
     
     // Bắt kịch bản lỗi: Để trống thông tin
-    if (!brandName || !startDate || !endDate || fee === undefined || !image) {
-      return res.status(400).json({ message: 'Lỗi trống trơn: Vui lòng không được xóa hay để trống thông tin bắt buộc!' });
+    if (!brandName || !startDate || !endDate || fee === undefined || !image || !url) {
+      return res.status(400).json({ message: 'Lỗi: Không được để trống bất kỳ trượng nào (bao gồm Link QC)!' });
     }
 
     const start = new Date(startDate);
