@@ -117,10 +117,6 @@ const Management = () => {
         throw new Error('Sai Logic: Ngày kết thúc hợp đồng vô lý vì đang <= Ngày bắt đầu!');
       }
 
-      if (adForm.image.toLowerCase().includes('.png')) {
-        throw new Error('Sai định dạng ảnh: Hệ thống không cho phép lưu ảnh đuôi PNG!');
-      }
-
       const urlEndpoint = editingAdId ? `${API_BASE_URL}/api/ads/${editingAdId}` : `${API_BASE_URL}/api/ads`;
       const method = editingAdId ? 'PUT' : 'POST';
 

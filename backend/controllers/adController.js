@@ -28,10 +28,6 @@ const createAd = async (req, res, next) => {
       return res.status(400).json({ message: 'Lỗi: Ngày kết thúc hợp đồng buộc phải lớn hơn ngày bắt đầu hợp đồng' });
     }
 
-    if (image && image.toLowerCase().includes('.png')) {
-      return res.status(400).json({ message: 'Lỗi: Hệ thống từ chối ảnh định dạng PNG. Vui lòng sử dụng Webp hoặc JPG.' });
-    }
-
     const ad = new Ad({
       brandName,
       startDate,
@@ -111,10 +107,6 @@ const updateAd = async (req, res, next) => {
 
     if (end <= start) {
       return res.status(400).json({ message: 'Lỗi: Ngày kết thúc hợp đồng buộc phải lớn hơn ngày bắt đầu hợp đồng' });
-    }
-
-    if (image.toLowerCase().includes('.png')) {
-      return res.status(400).json({ message: 'Lỗi cấm: Hệ thống từ chối ảnh định dạng PNG. Vui lòng sử dụng Webp hoặc JPG.' });
     }
 
     const ad = await Ad.findById(req.params.id);
