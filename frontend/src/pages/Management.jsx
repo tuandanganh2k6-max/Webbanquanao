@@ -103,6 +103,13 @@ const Management = () => {
   const handleAdSubmit = async (e) => {
     e.preventDefault();
     try {
+      // Bắt lỗi trường trống (đặc biệt khi đang ở chế độ Sửa Đổi)
+      if (!adForm.brandName.trim()) throw new Error('Lỗi: Tên thương hiệu không được để trống!');
+      if (!adForm.image.trim()) throw new Error('Lỗi: Link ảnh Banner không được để trống!');
+      if (!adForm.startDate) throw new Error('Lỗi: Vui lòng chọn Ngày bắt đầu hợp đồng!');
+      if (!adForm.endDate) throw new Error('Lỗi: Vui lòng chọn Ngày kết thúc hợp đồng!');
+      if (!adForm.fee && adForm.fee !== 0) throw new Error('Lỗi: Phí hợp đồng không được để trống!');
+
       const start = new Date(adForm.startDate);
       const end = new Date(adForm.endDate);
       const today = new Date();
