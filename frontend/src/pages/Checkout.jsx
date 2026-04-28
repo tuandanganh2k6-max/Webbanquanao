@@ -5,7 +5,7 @@ import { useCart } from '../context/CartContext';
 import { getProductImageFallback, handleProductImageError } from '../utils/productImageFallback';
 
 const Checkout = () => {
-  const { cartItems, clearCart } = useCart();
+  const { cartItems, selectedCartIds, clearSelectedCart } = useCart();
   const navigate = useNavigate();
   const [shipping, setShipping] = useState({ address: '', city: '', phone: '' });
   const [paymentMethod, setPaymentMethod] = useState('COD');
@@ -27,7 +27,9 @@ const Checkout = () => {
   const [addressMessage, setAddressMessage] = useState('');
   const userInfo = JSON.parse(localStorage.getItem('userInfo'));
 
-  const itemsPrice = cartItems.reduce((acc, item) => acc + item.price * item.qty, 0);
+  const selectedCartIdSet = new Set(selectedCartIds);
+  const checkoutItems = cartItems.filter((item) => selectedCartIdSet.has(item.cartId));
+  const itemsPrice = checkoutItems.reduce((acc, item) => acc + item.price * item.qty, 0);
   const addressStorageKey = userInfo?._id ? `savedAddresses:${userInfo._id}` : '';
 
   const readJsonResponse = async (res) => {
@@ -458,7 +460,7 @@ const Checkout = () => {
           Authorization: `Bearer ${userInfo.token}`,
         },
         body: JSON.stringify({
-          orderItems: cartItems.map((item) => ({
+          orderItems: checkoutItems.map((item) => ({
             name: item.name,
             qty: item.qty,
             image: item.image,
@@ -475,7 +477,7 @@ const Checkout = () => {
       const data = await res.json();
 
       if (res.ok) {
-        clearCart();
+        clearSelectedCart();
         setSuccess(true);
         setTimeout(() => {
           navigate('/orders');
@@ -490,11 +492,11 @@ const Checkout = () => {
     }
   };
 
-  if (cartItems.length === 0 && !success) {
+  if (checkoutItems.length === 0 && !success) {
     return (
       <div className="text-center mt-20">
-        <h2 className="text-2xl font-bold mb-4">Lỗi: Không thể thanh toán giỏ hàng trống!</h2>
-        <Link to="/shop" className="text-blue-600 underline">Quay lại mua sắm</Link>
+        <h2 className="text-2xl font-bold mb-4">Bạn chưa chọn sản phẩm nào để thanh toán!</h2>
+        <Link to="/cart" className="text-blue-600 underline">Quay lại giỏ hàng để chọn sản phẩm</Link>
       </div>
     );
   }
@@ -810,7 +812,7 @@ const Checkout = () => {
             <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 sticky top-24">
               <h2 className="text-xl font-bold text-slate-900 mb-6">Đơn Hàng Của Bạn</h2>
               <div className="space-y-4 mb-6 border-b pb-6 max-h-96 overflow-y-auto">
-                {cartItems.map((item) => (
+                {checkoutItems.map((item) => (
                   <div key={item.cartId} className="flex gap-4">
                     <img
                       src={item.image || getProductImageFallback(item.name)}

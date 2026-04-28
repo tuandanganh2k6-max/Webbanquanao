@@ -4,12 +4,30 @@ import { getProductImageFallback, handleProductImageError } from '../utils/produ
 import { getAvailableSizes } from '../utils/productOptions';
 
 const Cart = () => {
-  const { cartItems, removeFromCart, updateCartQty, updateCartSize } = useCart();
+  const {
+    cartItems,
+    selectedCartIds,
+    removeFromCart,
+    updateCartQty,
+    updateCartSize,
+    toggleCartSelection,
+    selectAllCartItems,
+    clearCartSelection,
+  } = useCart();
   const navigate = useNavigate();
 
-  const itemsPrice = cartItems.reduce((acc, item) => acc + item.price * item.qty, 0);
+  const selectedCartIdSet = new Set(selectedCartIds);
+  const selectedItems = cartItems.filter((item) => selectedCartIdSet.has(item.cartId));
+  const selectedItemsPrice = selectedItems.reduce((acc, item) => acc + item.price * item.qty, 0);
+  const selectedItemsQty = selectedItems.reduce((acc, item) => acc + item.qty, 0);
+  const isAllSelected = cartItems.length > 0 && selectedItems.length === cartItems.length;
 
   const checkoutHandler = () => {
+    if (selectedItems.length === 0) {
+      alert('Vui lòng chọn ít nhất một sản phẩm để thanh toán.');
+      return;
+    }
+
     navigate('/checkout');
   };
 
@@ -46,9 +64,32 @@ const Cart = () => {
           <div className="flex flex-col lg:flex-row gap-8">
             <div className="w-full lg:w-2/3">
               <div className="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden">
+                <div className="p-5 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-slate-50/60">
+                  <label className="flex items-center gap-3 text-sm font-bold text-slate-700">
+                    <input
+                      type="checkbox"
+                      checked={isAllSelected}
+                      onChange={() => isAllSelected ? clearCartSelection() : selectAllCartItems()}
+                      className="w-5 h-5 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                    />
+                    Chọn tất cả sản phẩm
+                  </label>
+                  <div className="text-xs font-bold text-slate-500">
+                    Đã chọn <span className="text-blue-600">{selectedItems.length}</span> / {cartItems.length} sản phẩm
+                  </div>
+                </div>
                 <ul className="divide-y divide-slate-100">
                   {cartItems.map((item) => (
                     <li key={item.cartId} className="p-6 flex flex-col sm:flex-row items-center gap-6 group hover:bg-slate-50 transition-colors">
+                      <label className="shrink-0 flex items-center justify-center">
+                        <input
+                          type="checkbox"
+                          checked={selectedCartIdSet.has(item.cartId)}
+                          onChange={() => toggleCartSelection(item.cartId)}
+                          className="w-5 h-5 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                          aria-label={`Chọn ${item.name}`}
+                        />
+                      </label>
                       <div className="w-24 h-24 flex-shrink-0 rounded-xl overflow-hidden bg-slate-100">
                         <img
                           src={item.image || getProductImageFallback(item.name)}
@@ -135,8 +176,8 @@ const Cart = () => {
                 <div className="flow-root">
                   <dl className="-my-4 text-sm divide-y divide-slate-100">
                     <div className="py-4 flex items-center justify-between">
-                      <dt className="text-slate-600">Tổng sản phẩm</dt>
-                      <dd className="font-medium text-slate-900">{cartItems.reduce((a, c) => a + c.qty, 0)} món</dd>
+                      <dt className="text-slate-600">Sản phẩm đã chọn</dt>
+                      <dd className="font-medium text-slate-900">{selectedItemsQty} món</dd>
                     </div>
                     <div className="py-4 flex items-center justify-between">
                       <dt className="text-slate-600">Phí giao hàng</dt>
@@ -144,14 +185,27 @@ const Cart = () => {
                     </div>
                     <div className="py-4 flex items-center justify-between">
                       <dt className="text-base font-bold text-slate-900">Tổng cộng ước tính</dt>
-                      <dd className="text-2xl font-black text-blue-600">{itemsPrice.toLocaleString('vi-VN')} đ</dd>
+                      <dd className="text-2xl font-black text-blue-600">{selectedItemsPrice.toLocaleString('vi-VN')} đ</dd>
                     </div>
                   </dl>
                 </div>
                 <div className="mt-8">
-                  <button onClick={checkoutHandler} className="w-full flex justify-center items-center px-6 py-4 border border-transparent rounded-xl shadow-lg text-base font-bold text-white bg-slate-900 hover:bg-slate-800 transition-all transform hover:-translate-y-0.5">
+                  <button
+                    onClick={checkoutHandler}
+                    disabled={selectedItems.length === 0}
+                    className={`w-full flex justify-center items-center px-6 py-4 border border-transparent rounded-xl shadow-lg text-base font-bold text-white transition-all transform ${
+                      selectedItems.length === 0
+                        ? 'bg-slate-300 cursor-not-allowed'
+                        : 'bg-slate-900 hover:bg-slate-800 hover:-translate-y-0.5'
+                    }`}
+                  >
                     Tiến Hành Thanh Toán
                   </button>
+                  {selectedItems.length === 0 && (
+                    <p className="mt-3 text-center text-xs font-bold text-amber-600">
+                      Chọn ít nhất một sản phẩm trong giỏ hàng để tiếp tục.
+                    </p>
+                  )}
                 </div>
                 <div className="mt-4 text-center">
                   <Link to="/shop" className="text-sm font-medium text-slate-500 hover:text-blue-600 transition-colors">
