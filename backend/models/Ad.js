@@ -8,6 +8,7 @@ const adSchema = new mongoose.Schema({
   startDate: { type: Date, required: true },
   endDate: { type: Date, required: true },
   isActive: { type: Boolean, default: true },
+  priority: { type: Number, default: 0 },
 }, { timestamps: true });
 
 module.exports = mongoose.model('Ad', adSchema);

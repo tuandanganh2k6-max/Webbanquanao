@@ -19,7 +19,8 @@ const Management = () => {
   const [msgText, setMsgText] = useState('');
   const [stockDrafts, setStockDrafts] = useState({});
 
-  const [adForm, setAdForm] = useState({ brandName: '', startDate: '', endDate: '', fee: 0, image: '', url: '' });
+  const [adForm, setAdForm] = useState({ brandName: '', startDate: '', endDate: '', fee: 0, image: '', url: '', priority: 0 });
+  const [editingAdId, setEditingAdId] = useState(null);
   const [productForm, setProductForm] = useState({ name: '', price: 0, description: '', image: '', category: '', brand: '', countInStock: 0 });
   const [showProductModal, setShowProductModal] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(null);
@@ -120,15 +121,26 @@ const Management = () => {
         throw new Error('Sai định dạng ảnh: Hệ thống không cho phép lưu ảnh đuôi PNG!');
       }
 
-      const res = await fetch(`${API_BASE_URL}/api/ads`, {
-        method: 'POST',
+      const urlEndpoint = editingAdId ? `${API_BASE_URL}/api/ads/${editingAdId}` : `${API_BASE_URL}/api/ads`;
+      const method = editingAdId ? 'PUT' : 'POST';
+
+      const res = await fetch(urlEndpoint, {
+        method,
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${userInfo.token}` },
         body: JSON.stringify(adForm)
       });
       const resData = await res.json();
       if (!res.ok) throw new Error(resData.message || 'Lỗi đăng ký');
-      setData(prev => ({ ...prev, ads: [...prev.ads, resData] }));
-      setAdForm({ brandName: '', startDate: '', endDate: '', fee: 0, image: '', url: '' });
+      
+      if (editingAdId) {
+        setData(prev => ({ ...prev, ads: prev.ads.map(a => a._id === editingAdId ? resData : a) }));
+        alert('Cập nhật thành công!');
+      } else {
+        setData(prev => ({ ...prev, ads: [...prev.ads, resData] }));
+        alert('Ký kết thành công!');
+      }
+      setAdForm({ brandName: '', startDate: '', endDate: '', fee: 0, image: '', url: '', priority: 0 });
+      setEditingAdId(null);
       alert('Ký kết thành công!');
     } catch (err) { alert(err.message); }
   };
@@ -825,7 +837,17 @@ const Management = () => {
                      </div>
                    </div>
                    <input required type="number" value={adForm.fee} onChange={(e) => setAdForm({...adForm, fee: Number(e.target.value)})} placeholder="Budget (VND)" className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-white" />
-                   <button className="w-full bg-blue-600 py-4 rounded-2xl text-white font-black shadow-lg">INITIALIZE</button>
+                   <div className="flex gap-4">
+                      <input required type="number" value={adForm.priority} onChange={(e) => setAdForm({...adForm, priority: Number(e.target.value)})} placeholder="Điểm Phân Hạng Ưu Tiên" className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-white placeholder-slate-700 font-bold" title="Hợp đồng có điểm Priority càng cao sẽ được ưu tiên xuất hiện ra màn hình Khách Hàng." />
+                   </div>
+                   <div className="flex gap-2">
+                     <button type="submit" className="flex-1 bg-blue-600 py-4 rounded-2xl text-white font-black shadow-lg uppercase tracking-widest">
+                       {editingAdId ? '📝 LƯU CẬP NHẬT' : 'INITIALIZE'}
+                     </button>
+                     {editingAdId && (
+                       <button type="button" onClick={() => { setEditingAdId(null); setAdForm({ brandName: '', startDate: '', endDate: '', fee: 0, image: '', url: '', priority: 0 }); }} className="bg-slate-700 px-6 py-4 rounded-2xl text-slate-300 font-black uppercase text-xs">Hủy</button>
+                     )}
+                   </div>
                 </form>
              </div>
              <div className="lg:col-span-2 bg-white p-8 rounded-[3rem] border border-slate-100 overflow-x-auto">
@@ -874,7 +896,21 @@ const Management = () => {
                                <button onClick={() => setConfirmDeleteAd(null)} className="px-2 py-1 bg-slate-100 text-slate-600 text-[9px] font-black rounded-lg">HỦY</button>
                             </div>
                           ) : (
-                            <button onClick={() => setConfirmDeleteAd(ad._id)} className="text-[10px] font-black text-red-500 uppercase hover:underline mt-1">Gỡ hợp đồng</button>
+                            <div className="flex items-center gap-3 mt-2 justify-end">
+                              <button onClick={() => {
+                                setAdForm({
+                                  brandName: ad.brandName,
+                                  startDate: ad.startDate.substring(0, 10),
+                                  endDate: ad.endDate.substring(0, 10),
+                                  fee: ad.fee,
+                                  image: ad.image,
+                                  url: ad.url || '',
+                                  priority: ad.priority || 0
+                                });
+                                setEditingAdId(ad._id);
+                              }} className="text-[10px] font-black text-blue-500 uppercase hover:underline">Sửa Đổi</button>
+                              <button onClick={() => setConfirmDeleteAd(ad._id)} className="text-[10px] font-black text-red-500 uppercase hover:underline">Gỡ bỏ</button>
+                            </div>
                           )}
                         </td>
                       </tr>

@@ -12,12 +12,15 @@ const SideAds = () => {
         const res = await fetch(`${API_BASE_URL}/api/ads`);
         const data = await res.json();
         if (res.ok) {
-          const activeAds = Array.isArray(data) ? data.filter(ad => {
-            const end = new Date(ad.endDate);
-            const today = new Date();
-            today.setHours(0, 0, 0, 0);
-            return ad.isActive === true && end > today;
-          }) : [];
+          const activeAds = Array.isArray(data) ? data
+            .filter(ad => {
+              const end = new Date(ad.endDate);
+              const today = new Date();
+              today.setHours(0, 0, 0, 0);
+              return ad.isActive === true && end > today;
+            })
+            .sort((a, b) => (b.priority || 0) - (a.priority || 0)) // Ưu tiên cao nhất lên trước
+          : [];
           setAds(activeAds);
         }
       } catch (err) {

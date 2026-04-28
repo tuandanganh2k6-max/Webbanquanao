@@ -11,7 +11,7 @@ const getAds = async (req, res, next) => {
 
 const createAd = async (req, res, next) => {
   try {
-    const { brandName, startDate, endDate, fee, image, url } = req.body;
+    const { brandName, startDate, endDate, fee, image, url, priority } = req.body;
     
     // Validate end date (Business Rule BR-01 for Ad Contract)
     const start = new Date(startDate);
@@ -39,6 +39,7 @@ const createAd = async (req, res, next) => {
       fee,
       image,
       url,
+      priority: priority || 0
     });
     const createdAd = await ad.save();
     res.status(201).json(createdAd);
@@ -86,4 +87,54 @@ const updateAdStatus = async (req, res) => {
   }
 };
 
-module.exports = { getAds, createAd, deleteAd, updateAdStatus };
+// @desc    Update ad full info
+// @route   PUT /api/ads/:id
+// @access  Private/Admin
+const updateAd = async (req, res, next) => {
+  try {
+    const { brandName, startDate, endDate, fee, image, url, priority } = req.body;
+    
+    // Bắt kịch bản lỗi: Để trống thông tin
+    if (!brandName || !startDate || !endDate || fee === undefined || !image) {
+      return res.status(400).json({ message: 'Lỗi trống trơn: Vui lòng không được xóa hay để trống thông tin bắt buộc!' });
+    }
+
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); 
+    start.setHours(0, 0, 0, 0);
+    
+    if (end <= today) {
+      return res.status(400).json({ message: 'Lỗi: Ngày kết thúc hợp đồng không được nhỏ hơn hoặc bằng ngày hôm nay' });
+    }
+
+    if (end <= start) {
+      return res.status(400).json({ message: 'Lỗi: Ngày kết thúc hợp đồng buộc phải lớn hơn ngày bắt đầu hợp đồng' });
+    }
+
+    if (image.toLowerCase().includes('.png')) {
+      return res.status(400).json({ message: 'Lỗi cấm: Hệ thống từ chối ảnh định dạng PNG. Vui lòng sử dụng Webp hoặc JPG.' });
+    }
+
+    const ad = await Ad.findById(req.params.id);
+    if (ad) {
+      ad.brandName = brandName;
+      ad.startDate = startDate;
+      ad.endDate = endDate;
+      ad.fee = fee;
+      ad.image = image;
+      ad.url = url;
+      ad.priority = priority !== undefined ? priority : ad.priority;
+      
+      const updatedAd = await ad.save();
+      res.json(updatedAd);
+    } else {
+      res.status(404).json({ message: 'Ad not found' });
+    }
+  } catch (error) {
+    next(error);
+  }
+};
+
+module.exports = { getAds, createAd, deleteAd, updateAdStatus, updateAd };

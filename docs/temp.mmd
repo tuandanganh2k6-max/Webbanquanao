@@ -1,0 +1,29 @@
+graph TD
+    subgraph "Hệ thống Quản lý Quảng Cáo"
+        direction TB
+        A[Quản Trị Viên - Admin]
+        
+        %% Nhóm Thêm & Khởi tạo
+        UC1(Thêm Hợp đồng Quảng Cáo)
+        UC2(Kiểm duyệt Logic Nhập liệu)
+        
+        %% Nhóm Điều khiển
+        UC3(Quản lý Tắt/Xóa Quảng Cáo)
+        UC4(Cấm Khôi phục Hợp đồng Hết hạn)
+        
+        %% Flow Tạo
+        A -->|Khởi tạo & Điền Form| UC1
+        UC1 -.->|<<include>>| UC2
+        
+        %% Flow Điều Khiển
+        A -->|Công tắc Bật/Tắt / Thùng Rác| UC3
+        UC3 -.->|<<extend>> Khi cố ép Bật| UC4
+    end
+
+    %% Styling
+    classDef default fill:#f9f9f9,stroke:#333,stroke-width:2px;
+    classDef actor fill:#d4edda,stroke:#28a745,stroke-width:3px;
+    classDef error fill:#f8d7da,stroke:#dc3545,stroke-width:2px,stroke-dasharray: 5 5;
+    
+    class A actor;
+    class UC2,UC4 error;
